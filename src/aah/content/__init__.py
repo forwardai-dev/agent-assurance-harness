@@ -9,7 +9,15 @@ is a portable, signed artifact, which is the only thing that should ever cross t
 public/private boundary.
 """
 
-from .pack import ContentPack, ContentPackError, Source, load_bundled_public, load_pack
+from .pack import (
+    ContentPack,
+    ContentPackError,
+    Source,
+    discover_pack_paths,
+    load_bundled_public,
+    load_pack,
+    write_pack,
+)
 
 __all__ = [
     "ContentPack",
@@ -17,4 +25,6 @@ __all__ = [
     "Source",
     "load_pack",
     "load_bundled_public",
+    "write_pack",
+    "discover_pack_paths",
 ]

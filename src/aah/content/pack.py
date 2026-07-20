@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from .. import SCHEMA_VERSION
@@ -179,6 +180,68 @@ def sign_manifest(manifest: dict, signer: Ed25519Signer) -> dict:
     manifest = dict(manifest)
     manifest["signature"] = {"algo": "ed25519", "public_key": signer.public_key_hex, "sig": sig}
     return manifest
+
+
+def write_pack(
+    dest: Any,
+    *,
+    name: str,
+    version: str,
+    kind: str,
+    scenarios: list[AttackScenario],
+    sources: tuple[Any, ...] = (),
+    description: str = "",
+    scenarios_file: str = "scenarios/asi-battery.json",
+    signer: Ed25519Signer | None = None,
+) -> Path:
+    """Write a content pack to ``dest``, computing its hash and optionally signing it.
+
+    This is the one place packs are produced — used by the regen script and by a private
+    exporter to emit a signed pack from internal infra. Returns the pack directory.
+    """
+    dest = Path(dest)
+    (dest / Path(scenarios_file).parent).mkdir(parents=True, exist_ok=True)
+    scen = [scenario_to_dict(s) for s in scenarios]
+    chash = scenarios_content_hash(scen)
+    (dest / scenarios_file).write_text(
+        json.dumps({"scenarios": scen}, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    manifest = {
+        "schema": PACK_SCHEMA,
+        "name": name,
+        "version": version,
+        "kind": kind,
+        "description": description,
+        "sources": [s.to_dict() if isinstance(s, Source) else dict(s) for s in sources],
+        "scenarios_file": scenarios_file,
+        "content_hash": chash,
+    }
+    if signer is not None:
+        manifest = sign_manifest(manifest, signer)
+    (dest / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return dest
+
+
+def discover_pack_paths(entry_points_fn: Any = None) -> list[Path]:
+    """Resolve filesystem paths for packs registered under the ``aah.content_packs`` group.
+
+    An installed private-pack package advertises its pack directory via a Python
+    entry point; each entry point resolves to a path (or a callable returning one).
+    ``entry_points_fn`` is injectable for testing.
+    """
+    if entry_points_fn is None:
+        from importlib.metadata import entry_points
+
+        def entry_points_fn() -> Any:
+            return entry_points(group="aah.content_packs")
+
+    paths: list[Path] = []
+    for ep in entry_points_fn():
+        target = ep.load()
+        paths.append(Path(str(target() if callable(target) else target)))
+    return paths
 
 
 # ---------------------------------------------------------------------------

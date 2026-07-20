@@ -13,8 +13,9 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 
-from ..attack.generators.battery import default_battery
+from ..content.pack import ContentPackError, load_bundled_public, load_pack
 from ..eval.engine import EvalTask
 from ..governance.policy import Policy
 from ..report.dashboard import render
@@ -83,17 +84,35 @@ def _demo_rerank_findings():
     return res.to_findings(k=10)
 
 
+def _load_content_pack(args):
+    """Load the requested content pack (or the bundled public one) for a run."""
+    if args.content_pack:
+        trusted = [args.trusted_key] if args.trusted_key else None
+        return load_pack(
+            Path(args.content_pack),
+            require_signature=args.require_signature,
+            trusted_keys=trusted,
+        )
+    return load_bundled_public()
+
+
 def cmd_run(args) -> int:
     """``aah run``: execute an assurance run and write the evidence object."""
     profile = "vulnerable" if args.vulnerable else "safe"
     target = _make_target(args.target, args.vulnerable)
+    try:
+        pack = _load_content_pack(args)
+    except ContentPackError as e:
+        print(f"content-pack error: {e}", file=sys.stderr)
+        return 3
     run = run_assurance(
         target=target,
         eval_tasks=_demo_eval(args.target),
-        attack_scenarios=default_battery(),
+        attack_scenarios=list(pack.scenarios),
         policy=Policy(),
         seed=args.seed,
         extra_findings=_demo_rerank_findings(),
+        content_packs=(pack.ref(),),
     )
     os.makedirs(args.out, exist_ok=True)
     ev_path = os.path.join(args.out, "evidence.json")
@@ -105,6 +124,7 @@ def cmd_run(args) -> int:
     with open(dash_path, "w") as fh:
         fh.write(dash)
     print(f"GATE: {run.gate.verdict}  (profile={profile})")
+    print(f"  content-pack : {pack.ref()}  ({'signed' if pack.signed else 'unsigned'}, kind={pack.kind})")
     print(f"  content-hash : {run.seal.this_hash}")
     print(
         f"  verify       : {'OK' if vres.ok else 'FAILED'} (integrity={vres.integrity_ok} sig={vres.signature_ok} decision={vres.decision_ok})"
@@ -143,6 +163,22 @@ def cmd_gate(args) -> int:
     return 0 if verdict == "PASS" else 1
 
 
+def cmd_pack(args) -> int:
+    """``aah pack``: load + verify a content pack offline and print its provenance."""
+    trusted = [args.trusted_key] if args.trusted_key else None
+    try:
+        pack = load_pack(Path(args.path), require_signature=args.require_signature, trusted_keys=trusted)
+    except ContentPackError as e:
+        print(f"content-pack INVALID: {e}", file=sys.stderr)
+        return 3
+    print(f"pack        : {pack.name}@{pack.version} (kind={pack.kind})")
+    print(f"content-hash: {pack.content_hash}")
+    print(f"scenarios   : {len(pack.scenarios)}")
+    print(f"signature   : {f'signed by {pack.signer_pubkey}' if pack.signed else 'unsigned'}")
+    print(f"sources     : {', '.join(s.id + '@' + s.version for s in pack.sources)}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build and return the argparse command-line parser."""
     p = argparse.ArgumentParser(
@@ -161,7 +197,27 @@ def build_parser() -> argparse.ArgumentParser:
     )
     r.add_argument("--out", default="./out", help="output directory")
     r.add_argument("--seed", type=int, default=0)
+    r.add_argument(
+        "--content-pack",
+        default="",
+        help="path to a threat-content pack dir (default: the bundled public pack)",
+    )
+    r.add_argument(
+        "--require-signature",
+        action="store_true",
+        help="reject an unsigned content pack (for trusted private packs)",
+    )
+    r.add_argument(
+        "--trusted-key",
+        default="",
+        help="hex Ed25519 public key the content pack must be signed by",
+    )
     r.set_defaults(func=cmd_run)
+    pk = sub.add_parser("pack", help="inspect + verify a content pack offline")
+    pk.add_argument("path")
+    pk.add_argument("--require-signature", action="store_true")
+    pk.add_argument("--trusted-key", default="")
+    pk.set_defaults(func=cmd_pack)
     v = sub.add_parser("verify", help="offline re-verify an evidence bundle")
     v.add_argument("evidence")
     v.set_defaults(func=cmd_verify)
