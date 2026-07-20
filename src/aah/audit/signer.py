@@ -48,6 +48,26 @@ class Ed25519Signer:
             return cls(Ed25519PrivateKey.from_private_bytes(raw))
         return cls(Ed25519PrivateKey.generate())
 
+    @classmethod
+    def from_pem(cls, pem: bytes, password: bytes | None = None) -> Ed25519Signer:
+        """Load a persistent signer from a PKCS8 PEM private key (the production path)."""
+        from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+        key = load_pem_private_key(pem, password=password)
+        if not isinstance(key, Ed25519PrivateKey):
+            raise ValueError("not an Ed25519 private key")
+        return cls(key)
+
+    def to_pem(self) -> bytes:
+        """Serialize the private key to unencrypted PKCS8 PEM (write to a mode-600 file)."""
+        from cryptography.hazmat.primitives import serialization
+
+        return self._private.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
     def sign(self, data: bytes) -> str:
         """Sign the bytes with the Ed25519 private key."""
         return self._private.sign(data).hex()

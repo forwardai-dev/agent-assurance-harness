@@ -146,3 +146,28 @@ def test_required_control_capability_threshold():
         )
     ]
     assert evaluate_gate(findings, p).verdict == "FAIL"
+
+
+def test_ed25519_pem_roundtrip_preserves_key():
+    signer = Ed25519Signer.generate()
+    pem = signer.to_pem()
+    assert pem.startswith(b"-----BEGIN PRIVATE KEY-----")
+    loaded = Ed25519Signer.from_pem(pem)
+    # same key: same public key, and a signature from one verifies under the other's pubkey
+    assert loaded.public_key_hex == signer.public_key_hex
+    sig = loaded.sign(b"payload")
+    assert Ed25519Verifier().verify(b"payload", sig, signer.public_key_hex)
+
+
+def test_from_pem_rejects_non_ed25519_key():
+    import pytest
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
+    rsa_pem = rsa.generate_private_key(public_exponent=65537, key_size=2048).private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    with pytest.raises(ValueError, match="not an Ed25519"):
+        Ed25519Signer.from_pem(rsa_pem)
