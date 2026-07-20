@@ -1,8 +1,7 @@
 # Agent Assurance Harness (`aah`)
 
 <!-- Badges: the static ones reflect facts verifiable from this repo offline.
-     Replace OWNER with your GitHub org/user once the repo is pushed. -->
-[![CI](https://img.shields.io/github/actions/workflow/status/OWNER/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/OWNER/agent-assurance-harness/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/forwardai-dev/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/forwardai-dev/agent-assurance-harness/actions)
 [![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-30%20passing-brightgreen)](tests/)

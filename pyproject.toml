@@ -34,8 +34,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://forwardai.dev/aah/"
 Documentation = "https://forwardai.dev/aah/"
-Repository = "https://github.com/OWNER/agent-assurance-harness"
-Issues = "https://github.com/OWNER/agent-assurance-harness/issues"
+Repository = "https://github.com/forwardai-dev/agent-assurance-harness"
+Issues = "https://github.com/forwardai-dev/agent-assurance-harness/issues"
 
 [project.optional-dependencies]
 # Optional producers/judges — never required for the core gate or offline verify.
