@@ -1,0 +1,7 @@
+Agent Assurance Harness (aah)
+Copyright 2026 Sanju Goswami
+
+This product is an independent, offline-first reference implementation of an
+Agent Assurance Evidence standard. It bundles no third-party source. Optional
+producer adapters (promptfoo, garak, Inspect AI) parse those tools' output and
+are never required dependencies. Attack fixtures are native and license-audited.

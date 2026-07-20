@@ -1,0 +1,37 @@
+name: ci
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python-version }}" }
+      - run: pip install -e ".[dev]"
+      - run: PYTHONPATH=src python -m pytest tests/ -q     # offline, no secrets, provider=mock
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]" bandit interrogate pip-audit build twine "validate-pyproject[all]"
+      - name: Lint (ruff)
+        run: ruff check src tests && ruff format --check src tests
+      - name: Types (mypy)
+        run: mypy src
+      - name: Docstring coverage (interrogate >= 80%)
+        run: interrogate -c pyproject.toml src
+      - name: Security (bandit)
+        run: bandit -r src -c pyproject.toml
+      - name: Dependency audit (pip-audit)
+        run: pip-audit || true   # advisory: core dep set is minimal (cryptography only)
+      - name: Packaging metadata
+        run: validate-pyproject pyproject.toml
+      - name: Build + twine check
+        run: python -m build && twine check dist/*

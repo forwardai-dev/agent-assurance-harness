@@ -1,0 +1,10 @@
+name: default
+version: v1
+# Any OPEN finding scoring above this AIVSS fails the gate.
+max_aivss: 6.9
+# Open findings STRICTLY above this severity fail (info<low<medium<high<critical).
+max_open_severity: medium
+# Any open finding in these axes fails the build.
+fail_on_open_axes: [security]
+# Eval pass-rate floor (0 disables).
+min_eval_pass_rate: 0.0
