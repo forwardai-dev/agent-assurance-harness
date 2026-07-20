@@ -1,6 +1,6 @@
 # Agent Assurance Harness (`aah`)
 
-<!-- Badges: the static ones reflect facts verifiable from this repo offline.
+<!-- Badges: static ones reflect facts verifiable from this repo offline. -->
 [![CI](https://img.shields.io/github/actions/workflow/status/forwardai-dev/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/forwardai-dev/agent-assurance-harness/actions)
 [![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
@@ -113,6 +113,6 @@ pluggable producer adapters (promptfoo/garak/Inspect) · sigstore/RFC-3161 exter
 OSCAL export to Credo AI / IBM watsonx.governance.
 
 ## Status
-Reference implementation. `pytest`: **24 passed**, fully offline. Not positioned as a
+Reference implementation. `pytest`: **30 passed**, fully offline. Not positioned as a
 production compliance gate a regulated enterprise stakes compliance on — it is an **evidence
 standard + reference implementation**. Licensed Apache-2.0.
