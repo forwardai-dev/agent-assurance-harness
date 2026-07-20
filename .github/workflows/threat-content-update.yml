@@ -1,0 +1,57 @@
+name: threat-content-update
+
+# Weekly check of the PUBLIC authoritative sources (OWASP-ASI, MITRE ATLAS, AIVSS,
+# Anthropic research). On drift it opens a PR — it NEVER auto-merges. A human reviews
+# the source-version bump and decides whether new red-team scenarios are needed.
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e .
+
+      - name: Stamp today (deterministic input, no wall-clock in the script)
+        id: date
+        run: echo "today=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Check threat-content sources for drift
+        id: drift
+        env:
+          TODAY: ${{ steps.date.outputs.today }}
+        run: |
+          set +e
+          python scripts/update_threat_content.py --today "$TODAY" --write
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Open a review PR if the manifest changed
+        if: steps.drift.outputs.code == '20'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: threat-content/auto-refresh
+          title: "threat-content: source drift detected — review scenarios"
+          commit-message: "threat-content: bump source versions from upstream feeds"
+          labels: security, threat-content
+          body: |
+            An upstream **public** threat-content source changed version.
+
+            This PR bumps the source versions in the public pack manifest. **It does not
+            change scenarios** — automation surfaces drift; a human authors any new
+            red-team content.
+
+            Please review:
+            - [ ] Does the upstream change introduce a new attack class we should cover?
+            - [ ] If so, add/adjust scenarios in `aah/attack/generators/battery.py` and run
+                  `python scripts/regen_public_pack.py --version <YYYY.MM.DD>`.
+            - [ ] Otherwise, merge to record the freshness check.
