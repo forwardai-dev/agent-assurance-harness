@@ -48,6 +48,7 @@ def run_assurance(
     k: int = 1,
     timestamp: str = DEFAULT_TS,
     extra_findings: list[Finding] | None = None,
+    content_packs: tuple[str, ...] = (),
 ) -> AssuranceRun:
     """Run eval, attack, and rerank stages, then seal the evidence object."""
     signer = signer or Ed25519Signer.generate(seed=1)  # deterministic key for reproducible demo
@@ -79,6 +80,7 @@ def run_assurance(
         policy_version=policy.version,
         dataset_hash=dataset_hash,
         tool_manifest=tuple(tools),
+        content_packs=tuple(content_packs),
         created_at=timestamp,
     )
     scope = scope or ScopeStatement(

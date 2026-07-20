@@ -132,8 +132,13 @@ def asi07_inter_agent_spoof() -> AttackScenario:
     )
 
 
-def default_battery() -> list[AttackScenario]:
-    """Return the frozen v1 red-team battery (one scenario per key ASI category)."""
+def authoring_battery() -> list[AttackScenario]:
+    """The human-editable source of the public battery (regenerates the JSON pack).
+
+    Edit scenarios HERE, then run ``scripts/regen_public_pack.py`` to rebuild the
+    versioned pack under ``aah/content/packs/public/``. A sync test asserts the two
+    never drift.
+    """
     return [
         asi01_indirect_prompt_injection(),
         asi02_tool_abuse(),
@@ -141,3 +146,14 @@ def default_battery() -> list[AttackScenario]:
         asi06_memory_poisoning(),
         asi07_inter_agent_spoof(),
     ]
+
+
+def default_battery() -> list[AttackScenario]:
+    """Return the frozen v1 red-team battery from the bundled public content pack.
+
+    The runtime source of truth is the versioned, provenanced JSON pack (so every run
+    records exactly which content version it tested against), not this module's code.
+    """
+    from ...content.pack import load_bundled_public
+
+    return list(load_bundled_public().scenarios)

@@ -25,12 +25,14 @@ class RunManifest:
     policy_version: str = "unset"
     dataset_hash: str = "sha256:0"  # hash of the fixtures/goldens used
     tool_manifest: tuple[str, ...] = ()  # tool/MCP ids exposed to the agent
+    content_packs: tuple[str, ...] = ()  # threat-content pack refs (name@version#hash) used
     created_at: str = "1970-01-01T00:00:00Z"  # stamped by caller; fixed default keeps tests deterministic
 
     def to_dict(self) -> dict:
         """Return the manifest as a JSON-serializable dict."""
         d = asdict(self)
         d["tool_manifest"] = list(self.tool_manifest)
+        d["content_packs"] = list(self.content_packs)
         return d
 
     def fingerprint(self) -> str:

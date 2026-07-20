@@ -1,0 +1,43 @@
+{
+  "schema": "aah.content-pack/v1",
+  "name": "aah-public",
+  "version": "2026.07.20",
+  "kind": "public",
+  "description": "Public OWASP-Agentic red-team battery (frozen v1): one purpose-built scenario per key ASI category, every case ASI-tagged + AIVSS-scored + ATLAS-mappable. Derived only from public authoritative sources.",
+  "sources": [
+    {
+      "id": "owasp-asi",
+      "name": "OWASP Agentic Security Initiative — ASI Top 10",
+      "version": "2026.01",
+      "url": "https://genai.owasp.org/initiatives/agentic-security-initiative/",
+      "retrieved": "2026-07-20",
+      "live": false
+    },
+    {
+      "id": "mitre-atlas",
+      "name": "MITRE ATLAS (adversarial technique IDs)",
+      "version": "2026.05",
+      "url": "https://atlas.mitre.org/",
+      "retrieved": "2026-07-20",
+      "live": true
+    },
+    {
+      "id": "aivss",
+      "name": "AIVSS — Agentic AI Vulnerability Scoring System",
+      "version": "1.0",
+      "url": "https://aivss.org/",
+      "retrieved": "2026-07-20",
+      "live": false
+    },
+    {
+      "id": "anthropic-research",
+      "name": "Anthropic Research (safety/red-team catalog)",
+      "version": "2026-07-20",
+      "url": "https://www.anthropic.com/research",
+      "retrieved": "2026-07-20",
+      "live": true
+    }
+  ],
+  "scenarios_file": "scenarios/asi-battery.json",
+  "content_hash": "sha256:1c2898ecc033e8718e40c1c60fedd9ce4a62c4d61c672c225b1f91f99fc5ffdc"
+}
