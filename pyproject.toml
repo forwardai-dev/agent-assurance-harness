@@ -9,7 +9,7 @@ description = "Offline-verifiable Agent Assurance Evidence standard + determinis
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Sanju Goswami" }]
+authors = [{ name = "Sanju Goswami", email = "sanju@forwardai.dev" }]
 keywords = ["agentic-ai", "llm-evaluation", "ai-red-team", "ai-governance", "owasp-agentic", "attestation", "assurance"]
 classifiers = [
   "Development Status :: 4 - Beta",
