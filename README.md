@@ -12,6 +12,10 @@
 [![Security: bandit](https://img.shields.io/badge/security-bandit-yellow)](https://github.com/PyCQA/bandit)
 [![Offline](https://img.shields.io/badge/runtime-offline%20·%20no%20API%20keys-informational)](#)
 
+<p align="center">
+  <img src="docs/aah-demo.gif" alt="aah demo — a forged 'passing' result is caught three independent ways, offline" width="760">
+</p>
+
 **Offline-verifiable evidence for agentic AI.** `aah` produces one portable, signed,
 hash-chained **Agent Assurance Evidence Object (AAEO)** per run — combining correctness
 **eval**, adversarial **security/red-team**, and **governance** into a single auditable
