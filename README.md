@@ -81,6 +81,9 @@ VERIFICATION FAILED
 
 The forgery is caught **three independent ways**, offline. That is the whole thesis.
 
+**Verify a real one yourself** — two evidence objects from a live agent assessment ship in
+[`examples/evidence/`](examples/evidence/) (one PASS, one FAIL): `aah verify examples/evidence/pass-agent-resisted.json`.
+
 ## What makes it different (honest, defensible)
 1. **Portable, signed, hash-chained evidence object + offline `verify`.** Competitors emit
    ephemeral JSON/HTML with zero integrity; GRC platforms emit human-attested claims with
