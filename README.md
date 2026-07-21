@@ -51,6 +51,15 @@ independent ways, without trusting the producer. That is the whole thesis. The d
 runs against a **governed subrogation-intake agent** (`--target arbiter`) as a real,
 domain-grounded System-Under-Test.
 
+## Point it at your agent
+`aah` is BYO-agent. Test any agent three ways (see [docs/adapters.md](docs/adapters.md)):
+```bash
+aah run --target interactive                              # relay ANY agent by pasting its replies — zero code
+aah run --target-module mypkg:MyAgent --target-arg url=…  # load a custom adapter
+```
+Or wrap a function with `CallableAgent(fn)`. The security battery inspects the trajectory your
+adapter reports, so record every tool call faithfully — that's the whole signal.
+
 ## The 60-second demo (fully offline, no API keys)
 
 ```bash

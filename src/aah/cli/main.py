@@ -66,6 +66,19 @@ def _make_target(name: str, vulnerable: bool):
     return MockTargetAgent(profile=profile)
 
 
+def _resolve_target(args):
+    """Pick the system-under-test: a loaded module, the interactive relay, or a built-in."""
+    if getattr(args, "target_module", ""):
+        from ..target.loader import load_target, parse_target_args
+
+        return load_target(args.target_module, **parse_target_args(args.target_arg))
+    if args.target == "interactive":
+        from ..target.interactive import InteractiveAgent
+
+        return InteractiveAgent()
+    return _make_target(args.target, args.vulnerable)
+
+
 def _demo_rerank_findings():
     cases = [
         RerankCase("q1", ["d3", "d4", "d1", "d2"], {"d1", "d2"}),
@@ -99,7 +112,11 @@ def _load_content_pack(args):
 def cmd_run(args) -> int:
     """``aah run``: execute an assurance run and write the evidence object."""
     profile = "vulnerable" if args.vulnerable else "safe"
-    target = _make_target(args.target, args.vulnerable)
+    try:
+        target = _resolve_target(args)
+    except (ValueError, TypeError, ImportError, AttributeError) as e:
+        print(f"target error: {e}", file=sys.stderr)
+        return 4
     try:
         pack = _load_content_pack(args)
     except ContentPackError as e:
@@ -188,9 +205,22 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("run", help="run the offline assurance battery")
     r.add_argument(
         "--target",
-        choices=["mock", "arbiter"],
+        choices=["mock", "arbiter", "interactive"],
         default="mock",
-        help="system-under-test: 'mock' (generic) or 'arbiter' (governed subrogation-intake agent)",
+        help="system-under-test: 'mock' / 'arbiter' (built-in, offline) or "
+        "'interactive' (relay a REAL agent by pasting its responses)",
+    )
+    r.add_argument(
+        "--target-module",
+        default="",
+        help="load a custom adapter: 'module.path:ClassOrFactory' (overrides --target)",
+    )
+    r.add_argument(
+        "--target-arg",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="keyword arg passed to the --target-module factory (repeatable)",
     )
     r.add_argument(
         "--vulnerable", action="store_true", help="use the vulnerable SUT profile (produces a FAIL)"
