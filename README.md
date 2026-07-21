@@ -89,6 +89,19 @@ The forgery is caught **three independent ways**, offline. That is the whole the
    spoofing**, and **ASI04 supply-chain secret-exfil** — plus the attacker-vs-monitor
    *joint-risk* metric (attack succeeded **and** the monitor missed).
 
+## Design decisions
+The load-bearing choices — and the alternatives rejected, and why — are recorded as
+[Architecture Decision Records](docs/adr/). Each opens with a plain-English summary, so the
+reasoning is reconstructable, not just the result:
+
+- [ADR-0001](docs/adr/0001-offline-evidence-standard-not-a-harness.md) — an offline-verifiable **standard**, not a harness
+- [ADR-0002](docs/adr/0002-deterministic-gate-no-llm-in-money-path.md) — deterministic gate, **no LLM in the money-path**
+- [ADR-0003](docs/adr/0003-ed25519-hash-chain-tamper-evidence.md) — Ed25519 + hash-chain tamper-evidence
+- [ADR-0004](docs/adr/0004-threat-content-as-versioned-signed-packs.md) — threat content as versioned, **signed data packs**
+- [ADR-0005](docs/adr/0005-private-content-never-crosses-only-signed-packs.md) — proprietary content stays private; **only signed packs cross**
+- [ADR-0006](docs/adr/0006-frozen-v1-attack-corpus-honestly-labeled.md) — frozen v1 corpus, **honestly labeled** (adaptive = v2)
+- [ADR-0007](docs/adr/0007-contract-validation-authority-over-sql-checks.md) — contract-validation is the authority over SQL CHECKs
+
 ## Modules
 - `aah.core` — canonical JSON, hashing, the `Finding` schema, `RunManifest`, the AAEO.
 - `aah.audit` — Ed25519 signing + a hash-chained, append-only ledger (tamper-evidence).
