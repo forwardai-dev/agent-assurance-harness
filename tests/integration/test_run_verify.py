@@ -1,6 +1,7 @@
 """End-to-end: run assurance offline, verify the seal, prove tamper + decision-replay."""
 
 from aah.attack.generators.battery import default_battery
+from aah.audit.signer import Ed25519Signer
 from aah.eval.engine import EvalTask
 from aah.governance.policy import Policy
 from aah.runner import run_assurance
@@ -38,7 +39,11 @@ def test_vulnerable_run_fails_the_gate():
 
 def test_verify_roundtrip_offline():
     r = _run("safe")
-    res = verify_seal(r.seal.to_dict())
+    # Trust anchor required as of 2026-07-22: `ok` now means integrity AND authorship
+    # AND decision replay. These artifacts are produced in-test by the default demo
+    # signer, so pin that key — asserting `ok` without one would assert a property
+    # the standard cannot deliver.
+    res = verify_seal(r.seal.to_dict(), trusted_keys=[Ed25519Signer.generate(seed=1).public_key_hex])
     assert res.ok
     assert res.integrity_ok and res.signature_ok and res.decision_ok
     assert res.replayed_verdict == res.recorded_verdict == "PASS"

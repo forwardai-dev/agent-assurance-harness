@@ -143,8 +143,17 @@ def cmd_run(args) -> int:
     print(f"GATE: {run.gate.verdict}  (profile={profile})")
     print(f"  content-pack : {pack.ref()}  ({'signed' if pack.signed else 'unsigned'}, kind={pack.kind})")
     print(f"  content-hash : {run.seal.this_hash}")
+    # Inline verify uses no trust anchor, so a sound artifact is "tamper-evident"
+    # (bytes intact, decision replays) rather than fully "OK" — reserve OK/FAILED for
+    # the real states and don't cry "FAILED" on an artifact that is merely unattributed.
+    if vres.ok:
+        vtxt = "OK"
+    elif vres.tamper_evident and vres.authenticity_ok is None:
+        vtxt = "tamper-evident (author unproven — run 'aah verify --trusted-key' to attest)"
+    else:
+        vtxt = "FAILED"
     print(
-        f"  verify       : {'OK' if vres.ok else 'FAILED'} (integrity={vres.integrity_ok} sig={vres.signature_ok} decision={vres.decision_ok})"
+        f"  verify       : {vtxt} (integrity={vres.integrity_ok} sig={vres.signature_ok} decision={vres.decision_ok})"
     )
     print(f"  evidence     : {ev_path}")
     print(f"  dashboard    : {dash_path}")
@@ -160,16 +169,27 @@ def cmd_verify(args) -> int:
     """``aah verify``: offline-verify an evidence object's signature and hash chain."""
     with open(args.evidence) as fh:
         bundle = json.load(fh)
-    res = verify_seal(bundle["seal"])
+    trusted = [args.trusted_key] if getattr(args, "trusted_key", "") else None
+    res = verify_seal(bundle["seal"], trusted_keys=trusted)
     print(f"integrity : {'OK' if res.integrity_ok else 'FAIL'}")
     print(f"signature : {'OK' if res.signature_ok else 'FAIL'}")
+    authorship = {True: "OK", False: "FAIL", None: "UNVERIFIED (no --trusted-key)"}[res.authenticity_ok]
+    print(f"authorship: {authorship}")
     print(
         f"decision  : {'OK' if res.decision_ok else 'FAIL'} (recorded={res.recorded_verdict} replayed={res.replayed_verdict})"
     )
     for r in res.reasons:
         print(f"  - {r}")
-    print("VERIFIED" if res.ok else "VERIFICATION FAILED")
-    return 0 if res.ok else 2
+    if res.ok:
+        print("VERIFIED")
+        return 0
+    if res.tamper_evident and res.authenticity_ok is None:
+        # Distinguish "intact but unattributed" from "broken". Collapsing them would
+        # either overstate an unsigned-for artifact or cry wolf on a sound one.
+        print("TAMPER-EVIDENT ONLY — bytes intact and decision replays, author unproven")
+        return 3
+    print("VERIFICATION FAILED")
+    return 2
 
 
 def cmd_gate(args) -> int:
@@ -251,6 +271,13 @@ def build_parser() -> argparse.ArgumentParser:
     pk.set_defaults(func=cmd_pack)
     v = sub.add_parser("verify", help="offline re-verify an evidence bundle")
     v.add_argument("evidence")
+    v.add_argument(
+        "--trusted-key",
+        default="",
+        help="hex public key the artifact MUST be sealed with. Without it authorship "
+        "cannot be established, because the only key available is the one inside the "
+        "artifact — which a forger controls.",
+    )
     v.set_defaults(func=cmd_verify)
     g = sub.add_parser("gate", help="exit non-zero if the recorded verdict is FAIL")
     g.add_argument("evidence")

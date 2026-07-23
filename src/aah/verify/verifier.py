@@ -31,14 +31,42 @@ class VerifyResult:
     recorded_verdict: str
     replayed_verdict: str
     reasons: tuple[str, ...] = ()
+    #: Tri-state on purpose. True = the seal was signed by a key the VERIFIER pinned.
+    #: False = signed by a key outside the allow-list. None = no allow-list was given,
+    #: so authorship is simply unknown. None is NOT a pass: a signature verified against
+    #: a key carried inside the artifact proves only that whoever wrote it also signed it.
+    authenticity_ok: bool | None = None
 
     @property
     def ok(self) -> bool:
-        """True if signature and hash chain both verified."""
+        """True only when integrity, authorship and the decision replay all hold.
+
+        `authenticity_ok is None` (no trust anchor supplied) deliberately fails this.
+        The standard's claim is offline re-verification "without trusting the producer";
+        self-asserted authorship cannot deliver that, so it must not read as VERIFIED.
+        """
+        return self.integrity_ok and self.signature_ok and self.decision_ok and self.authenticity_ok is True
+
+    @property
+    def tamper_evident(self) -> bool:
+        """The weaker property that holds without a trust anchor: the bytes are intact
+        and the recorded decision replays. Says nothing about WHO produced them."""
         return self.integrity_ok and self.signature_ok and self.decision_ok
 
 
-def verify_seal(seal: dict) -> VerifyResult:
+#: The signing key `runner.py` uses by default is derived from seed=1, which is published
+#: in this repository. Anyone can reproduce it, so a signature under it authenticates
+#: nobody. Artifacts carrying it are labelled rather than silently trusted.
+DEMO_KEY_SEED = 1
+
+
+def _demo_public_key_hex() -> str:
+    from ..audit.signer import Ed25519Signer
+
+    return Ed25519Signer.generate(seed=DEMO_KEY_SEED).public_key_hex
+
+
+def verify_seal(seal: dict, trusted_keys: list[str] | None = None) -> VerifyResult:
     """seal = Seal.to_dict() (payload + prev_hash + timestamp + public_key_hex + signature + this_hash)."""
     reasons: list[str] = []
 
@@ -73,4 +101,33 @@ def verify_seal(seal: dict) -> VerifyResult:
         reasons.append("no embedded policy: decision could not be independently replayed")
         decision_ok = False
 
-    return VerifyResult(integrity_ok, signature_ok, decision_ok, recorded, replayed, tuple(reasons))
+    # --- AUTHORSHIP -------------------------------------------------------------
+    # Without an allow-list supplied by the VERIFIER, the only key available is the one
+    # inside the artifact — which an author of a forgery controls completely.
+    seal_key = (seal.get("public_key_hex") or "").lower()
+    if trusted_keys is None:
+        authenticity_ok = None
+        reasons.append(
+            "authorship UNVERIFIED: no trusted key supplied, so the signature was checked "
+            "against a key carried inside the artifact. Pass --trusted-key <hex> to prove "
+            "who produced it."
+        )
+    else:
+        allow = {k.strip().lower() for k in trusted_keys if k and k.strip()}
+        authenticity_ok = seal_key in allow
+        if not authenticity_ok:
+            reasons.append(
+                "untrusted signer: the sealing key is not in the trusted-keys allow-list"
+                if allow
+                else "untrusted signer: an empty trusted-keys allow-list trusts no one"
+            )
+
+    if seal_key and seal_key == _demo_public_key_hex().lower():
+        reasons.append(
+            "signed with the PUBLISHED demo key (seed=1 in runner.py): reproducible by "
+            "anyone, so it attests reproducibility, not authorship"
+        )
+
+    return VerifyResult(
+        integrity_ok, signature_ok, decision_ok, recorded, replayed, tuple(reasons), authenticity_ok
+    )
