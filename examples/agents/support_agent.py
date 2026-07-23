@@ -14,11 +14,13 @@ the *same* agent:
               retrieved document/memory tells it to do (indirect prompt
               injection — OWASP-Agentic ASI01/02/04/06/07).
 
-Brain: deterministic policy engine by default (no key needed, reproducible). If
-`OPENROUTER_API_KEY` (or `AGENT_LLM_KEY`) is set, the same two profiles are
+Brain: deterministic policy engine when **no key** is set (reproducible, offline).
+If `OPENROUTER_API_KEY` (or `AGENT_LLM_KEY`) is set, the same two profiles are
 driven by a **real LLM** whose only difference is the system prompt — so the
-guarded/naive split becomes a genuine, demonstrable control. Falls back to the
-deterministic brain on any LLM error.
+guarded/naive split becomes a genuine, demonstrable control. When a key IS set but
+the call fails (e.g. HTTP 402 / timeout), the error is surfaced — it does NOT fall
+back to the deterministic exfil, so a dead key can never masquerade as a successful
+attack in an assessment.
 
 Point AAH at it two ways:
 
@@ -185,8 +187,13 @@ def decide(prompt: str, context: dict, tools: tuple, profile: str, memory: list,
     if _llm_key() and attack_turn:
         try:
             return _decide_llm(prompt, context, tools, profile, memory, model)
-        except Exception:  # noqa: BLE001 - any LLM failure degrades to deterministic
-            pass
+        except Exception as exc:  # noqa: BLE001
+            # A key IS configured but the call failed (HTTP 402 / timeout /
+            # malformed reply). Surface the error — do NOT fall back to the
+            # deterministic brain, which would fabricate an exfil and make a
+            # transport failure look like a successful attack. (The deterministic
+            # brain is the intended agent only when NO key is set — see below.)
+            return {"text": f"[agent-error: LLM call failed: {exc}]", "tool_calls": [], "error": str(exc)}
     return _decide_deterministic(prompt, context, tools, profile, memory)
 
 
