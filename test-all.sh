@@ -26,9 +26,9 @@ echo "python : $(python3 --version 2>&1)"
 echo "os     : $(uname -srm)"
 echo "HEAD   : $(git log --oneline -1 2>/dev/null || echo 'n/a')"; hr
 
-echo "[1] install"
-python3 -m pip install -e . >/tmp/aah_install.log 2>&1
-rec "pip install -e ." $?
+echo "[1] install (with dev toolchain: ruff, mypy, type stubs)"
+python3 -m pip install -e ".[dev]" >/tmp/aah_install.log 2>&1
+rec "pip install -e .[dev]" $?
 hr
 
 echo "[2] test suite (pytest)"

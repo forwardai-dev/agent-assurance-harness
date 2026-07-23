@@ -42,7 +42,7 @@ Issues = "https://github.com/forwardai-dev/agent-assurance-harness/issues"
 llm = ["anthropic>=0.40", "openai>=1.40"]     # real judge/target adapters
 stats = ["numpy>=1.26"]                        # richer bootstrap (pure-python fallback ships in core)
 adapters = []                                  # promptfoo/garak/inspect wrappers (parse output, no runtime dep)
-dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6", "mypy>=1.11", "types-PyYAML"]
 
 [project.scripts]
 aah = "aah.cli.main:main"
