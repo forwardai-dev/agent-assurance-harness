@@ -22,8 +22,19 @@ hash-chained **Agent Assurance Evidence Object (AAEO)** per run — combining co
 record — and gates CI on it with a **deterministic policy** (no LLM in the money-path).
 
 > **This is not another "unified harness."** The headline is **vendor-neutral offline
-> attestation**: an auditor re-verifies the evidence **air-gapped, from the artifact
-> alone, with no network and without trusting the producer**. Think *SLSA / SBOM /
+> attestation**: an auditor re-verifies the evidence **air-gapped, with no network**,
+> against **a signing key they pinned themselves** (`aah verify --trusted-key <hex>`).
+>
+> **Two distinct properties, stated separately (corrected 2026-07-22).**
+> *Tamper-evidence* needs only the artifact: mutate any byte and the hash chain,
+> signature and decision replay all break. *Authorship* needs a trust anchor the
+> verifier supplies — without one, the signature is checked against a key carried
+> **inside** the artifact, which a forger controls. `aah verify` without
+> `--trusted-key` therefore reports `TAMPER-EVIDENT ONLY` and exits 3; it does not
+> claim VERIFIED. An earlier version of this README claimed re-verification "without
+> trusting the producer" while the code had no trust anchor — a forged bundle signed
+> with any key verified clean. Found by an adversarial council review, fixed, and
+> pinned by a test that forges a bundle and requires it to be rejected. Think *SLSA / SBOM /
 > in-toto, for agent assurance*. A hosted SaaS structurally cannot ship a
 > re-verify-without-me object without cannibalizing its own lock-in — so independence
 > is the point, not a limitation.

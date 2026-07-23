@@ -1,6 +1,7 @@
 """Dogfood: run the whole harness against the governed subrogation-intake agent."""
 
 from aah.attack.generators.battery import default_battery
+from aah.audit.signer import Ed25519Signer
 from aah.eval.engine import EvalTask
 from aah.governance.policy import Policy
 from aah.runner import run_assurance
@@ -28,7 +29,10 @@ def _run(profile):
 def test_arbiter_safe_passes_and_verifies():
     r = _run("safe")
     assert r.gate.verdict == "PASS"
-    assert verify_seal(r.seal.to_dict()).ok
+    seal = r.seal.to_dict()
+    # tamper-evident with no trust anchor; fully VERIFIED once the producer's key is pinned
+    assert verify_seal(seal).tamper_evident
+    assert verify_seal(seal, trusted_keys=[Ed25519Signer.generate(seed=1).public_key_hex]).ok
 
 
 def test_arbiter_vulnerable_fails_on_pii_exfil():

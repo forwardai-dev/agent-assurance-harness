@@ -13,8 +13,12 @@ echo "== 2) Same agent, vulnerable profile -> the gate FAILS =="
 $AAH run --target arbiter --vulnerable --out out-vuln | sed -n '1,3p;/reasons/,$p' | sed 's/^/   /'
 
 echo
-echo "== 3) An auditor re-verifies the PASS evidence OFFLINE (no network, no trust) =="
-$AAH verify out/evidence.json | sed 's/^/   /'
+echo "== 3) Re-verify the PASS evidence OFFLINE — the trust-anchor distinction =="
+echo "   (a) with NO trust anchor -> TAMPER-EVIDENT ONLY (bytes intact, author unproven):"
+$AAH verify out/evidence.json | sed 's/^/      /' || true
+KEY=$(python3 -c "import json;print(json.load(open('out/evidence.json'))['seal']['public_key_hex'])")
+echo "   (b) pinning the producer's key -> VERIFIED (authorship established):"
+$AAH verify out/evidence.json --trusted-key "$KEY" | sed 's/^/      /'
 
 echo
 echo "== 4) Forge it: flip a failing security finding to PASS + rewrite the verdict =="
