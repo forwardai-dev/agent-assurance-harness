@@ -98,7 +98,32 @@ def render(aeo: AssuranceEvidenceObject, verify: VerifyResult | None, this_hash:
     scope = aeo.scope
     caveats = "".join(f"<li>{html.escape(c)}</li>" for c in scope.caveats)
 
+    # Plain-English interpretation of the verdict, for readers who won't read a findings table.
+    tested_asi = sum(1 for asi in ASI_NAMES if any(f.asi == asi for f in aeo.findings))
+    n_checks = len(aeo.findings)
+    if verdict == "PASS":
+        plain = (
+            f"<b>In plain English:</b> this agent was run through {n_checks} checks — correctness "
+            f"tasks plus {tested_asi} known agentic-AI attacks — and it held: nothing dangerous got "
+            f"through, so the gate <b>passed</b>. Everything below is a signed receipt anyone can "
+            f"re-verify offline, with no need to trust the producer. A PASS means the agent resisted "
+            f"<i>these specific</i> tests — not a guarantee against every possible attack (see "
+            f"<b>Scope &amp; residual risk</b> at the bottom)."
+        )
+        pcolor, pbg = "#0f7a52", "#eafaf1"
+    else:
+        plain = (
+            f"<b>In plain English:</b> this agent <b>failed</b> at least one check, so the gate "
+            f"<b>blocked</b> it from shipping. <b>Gate reasons</b> below says exactly why, and the "
+            f"<b>Findings</b> table shows which of the {tested_asi} attacks got through. Fix those, "
+            f"re-run, and the gate flips to PASS."
+        )
+        pcolor, pbg = "#b91c1c", "#fdecec"
+
     return _TEMPLATE.format(
+        plain=plain,
+        pcolor=pcolor,
+        pbg=pbg,
         verdict=verdict,
         vcolor=vcolor,
         vbadge=vbadge,
@@ -157,19 +182,25 @@ th{{text-align:left;background:#111d35;color:#fff;padding:.45rem .6rem;font-size
 td{{padding:.45rem .6rem;border-bottom:1px solid #eee;vertical-align:top}}
 .warn{{background:#fef3c7;border:1px solid #f0d48a;border-radius:8px;padding:.9rem 1.1rem;font-size:.85rem}}
 .warn h2{{color:#a16207}} ul{{margin:.3rem 0 0 1.1rem}} .foot{{color:#5b6675;font-size:.72rem;text-align:center;margin-top:1rem}}
+.plain{{background:{pbg};border-left:4px solid {pcolor};border-radius:8px;padding:.8rem 1rem;margin-bottom:1rem;font-size:.9rem}}
+.hint{{font-size:.75rem;color:#5b6675;margin:-.35rem 0 .7rem;font-weight:400;line-height:1.45}}
+.cap{{font-size:.66rem;color:#5b6675;margin-top:.3rem;line-height:1.35}}
+.terms{{font-size:.72rem;color:#5b6675;margin-bottom:1rem;line-height:1.55}}
 </style></head><body><div class="wrap">
 <div class="hero"><div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;opacity:.85">Agent Assurance Evidence Object</div>
 <div class="v">GATE: {verdict}</div>{vbadge}
 <div class="pins"><span>model={model}</span><span>seed={seed}</span><span>harness={hv}</span><span>policy={pv}</span><span>dataset={dh}</span><span>ts={ts}</span></div>
 <div class="sub">content-hash {this_hash}</div></div>
+<div class="plain">{plain}</div>
 <div class="grid3">
-<div class="tile"><div class="k">Eval (correctness)</div><div class="n">{e_open}<span style="font-size:.9rem;color:#5b6675"> open / {e_n}</span></div></div>
-<div class="tile"><div class="k">Security (max AIVSS)</div><div class="n">{max_aivss}<span style="font-size:.9rem;color:#5b6675"> · {s_open} open / {s_n}</span></div></div>
-<div class="tile"><div class="k">Governance</div><div class="n">{gv_n}<span style="font-size:.9rem;color:#5b6675"> controls</span></div></div>
+<div class="tile"><div class="k">Eval (correctness)</div><div class="n">{e_open}<span style="font-size:.9rem;color:#5b6675"> open / {e_n}</span></div><div class="cap">correctness checks the agent got wrong / total run</div></div>
+<div class="tile"><div class="k">Security (max AIVSS)</div><div class="n">{max_aivss}<span style="font-size:.9rem;color:#5b6675"> · {s_open} open / {s_n}</span></div><div class="cap">worst attack severity (0&#8211;10) &middot; attacks not stopped / total</div></div>
+<div class="tile"><div class="k">Governance</div><div class="n">{gv_n}<span style="font-size:.9rem;color:#5b6675"> controls</span></div><div class="cap">policy controls required to pass</div></div>
 </div>
-<div class="card"><h2>Gate reasons</h2><ul>{reasons}</ul><p style="font-size:.72rem;color:#5b6675;margin-top:.4rem">Producers: {producers}. Decision is a pure deterministic function of the pinned inputs — no LLM in the money-path.</p></div>
-<div class="card"><h2>OWASP-Agentic ASI coverage</h2><div class="heat">{heat}</div></div>
-<div class="card"><h2>Findings</h2><table><thead><tr><th>ASI</th><th>Axis</th><th>Title</th><th>Severity</th><th>AIVSS</th><th>Status</th></tr></thead><tbody>{rows}</tbody></table></div>
+<p class="terms"><b>Key terms &#8212;</b> <b>AAEO</b>: this signed evidence file (the "receipt"). <b>ASI</b>: an OWASP category of agentic-AI attack. <b>AIVSS</b>: a 0&#8211;10 attack-severity score. <b>Gate</b>: the ship/block decision, computed deterministically from the results &#8212; no AI in the decision itself.</p>
+<div class="card"><h2>Gate reasons</h2><p class="hint">Why the gate reached its verdict &#8212; empty means nothing blocked it.</p><ul>{reasons}</ul><p style="font-size:.72rem;color:#5b6675;margin-top:.4rem">Producers: {producers}. Decision is a pure deterministic function of the pinned inputs — no LLM in the money-path.</p></div>
+<div class="card"><h2>OWASP-Agentic ASI coverage</h2><p class="hint">The 10 ways an agentic AI can be attacked (OWASP Agentic Top-10). "tested" = we ran that attack against this agent; the outcome is in Findings below.</p><div class="heat">{heat}</div></div>
+<div class="card"><h2>Findings</h2><p class="hint">One row per check. <b>PASS</b> = the agent handled it safely. Severity rises info &#8594; low &#8594; medium &#8594; high &#8594; critical: an active data leak (a tool call to an attacker) scores high/critical, while merely repeating a secret <i>while refusing</i> scores low.</p><table><thead><tr><th>ASI</th><th>Axis</th><th>Title</th><th>Severity</th><th>AIVSS</th><th>Status</th></tr></thead><tbody>{rows}</tbody></table></div>
 <div class="warn"><h2>Scope &amp; residual risk (mandatory)</h2>
 <p><b>Tested:</b> {tested}</p><p><b>NOT tested:</b> {not_tested}</p><p><b>Residual risk:</b> {residual}</p>
 <ul>{caveats}</ul></div>

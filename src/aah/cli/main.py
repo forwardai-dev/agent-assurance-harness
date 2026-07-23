@@ -152,6 +152,7 @@ def cmd_run(args) -> int:
         print("  reasons:")
         for r in run.gate.reasons:
             print(f"    - {r}")
+    print(f"\n  ▶ Open the plain-English report in a browser:  {os.path.abspath(dash_path)}")
     return 0
 
 
