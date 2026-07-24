@@ -7,7 +7,8 @@ plus a deterministic policy-as-code gate. "SLSA / SBOM / in-toto for agent assur
 Design law: the CI pass/fail decision is a PURE deterministic function of pinned inputs.
 No LLM/judge is ever in the money-path — a judge is a scored signal a policy may read,
 never the decider. An auditor re-verifies the evidence air-gapped, from the artifact
-alone, with no network and without trusting the producer.
+alone, with no network (tamper-evidence); authorship is a separate check against a
+producer key the verifier pins (`aah verify --trusted-key`).
 """
 
 __version__ = "0.1.0"

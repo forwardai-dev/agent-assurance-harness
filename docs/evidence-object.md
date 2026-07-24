@@ -35,9 +35,18 @@ metrics{} · transcript_ref · detail`
 2. **Signature** — verify the Ed25519 signature against the recorded public key.
 3. **Decision** — reconstruct findings + policy from the payload, re-run the deterministic
    gate, and assert the replayed verdict equals the recorded verdict.
+4. **Authorship** (only with a pinned key) — steps 1–3 check the signature against the key
+   carried *inside* the artifact, which a forger controls, so they prove tamper-evidence,
+   not authorship. Pass `aah verify --trusted-key <hex>` to check the seal against a
+   producer key you obtained from a **trusted channel**. Without one, verify reports
+   **TAMPER-EVIDENT ONLY** (exit 3); with a matching real producer key, **VERIFIED**
+   (exit 0). The published demo key yields **VERIFIED (DEMO KEY)** (exit 4) —
+   reproducibility, not authorship.
 
 Any mutation of any byte breaks (1); any attempt to forge the verdict breaks (1) and (3).
-No network, no producer trust, no vendor.
+Steps 1–3 need **no network and no trust anchor** — that is *tamper-evidence*. Proving
+**who** produced the artifact is step 4: a separate, explicit claim that requires a pinned
+key. No vendor lock-in either way.
 
 ## Design law
 The gate is a **pure deterministic function** of (findings, policy): no LLM, no I/O, no

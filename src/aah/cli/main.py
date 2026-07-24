@@ -1,7 +1,7 @@
 """aah CLI — one command surface.
 
   aah run    [--vulnerable] [--out DIR] [--seed N]   # run the offline battery -> signed AAEO + dashboard
-  aah verify <evidence.json>                          # offline re-verify (no network, no producer trust)
+  aah verify <evidence.json>                          # offline re-verify; integrity+decision need no anchor, authorship needs --trusted-key
   aah gate   <evidence.json>                          # exit non-zero if the recorded verdict is FAIL
 
 stdlib argparse (no third-party CLI dep). Fully offline; mock target + no API keys.

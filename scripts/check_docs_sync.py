@@ -62,6 +62,36 @@ def battery_asi_set(attack_dir: Path) -> set[str]:
     return ids
 
 
+_RETIRED_TRUST = ("no producer trust", "no trust in the producer", "without trusting the producer")
+_TRUST_QUALIFIERS = ("tooling", "trusted-key", "tamper-evidence", "self-asserted authorship")
+
+
+def find_retired_trust_phrasing(root: Path) -> list[str]:
+    """Lines asserting re-verification with NO producer trust, UNQUALIFIED.
+
+    The real model: tamper-evidence needs no anchor, but proving authorship needs a pinned
+    key. An unqualified "no producer trust" / "without trusting the producer" contradicts
+    that — it's the exact overclaim corrected across the repo. A line is allowed only when it
+    names the qualifier (…'s *tooling*), the mechanism (*--trusted-key* / *tamper-evidence*),
+    or QUOTES the retired phrase to refute it.
+    """
+    files = list((root / "docs").rglob("*.md")) + list((root / "src").rglob("*.py")) + [root / "README.md"]
+    hits: list[str] = []
+    for f in files:
+        if not f.is_file():
+            continue
+        for i, line in enumerate(f.read_text().splitlines(), 1):
+            low = line.lower()
+            for phrase in _RETIRED_TRUST:
+                if phrase not in low:
+                    continue
+                quoted = f'"{phrase}"' in low or f"'{phrase}'" in low
+                if quoted or any(q in low for q in _TRUST_QUALIFIERS):
+                    continue
+                hits.append(f"{f.relative_to(root)}:{i}")
+    return hits
+
+
 def real_test_count() -> int:
     """Ask pytest how many tests it collects (offline, no execution)."""
     out = subprocess.run(  # noqa: S603 - fixed argv, no shell
@@ -117,6 +147,16 @@ def main() -> int:
         )
     else:
         print(f"OK  ASI coverage: README {sorted(advertised)} ⊆ battery {sorted(implemented)}")
+
+    # 3. no unqualified "without trusting the producer" phrasing (authorship needs a pinned key)
+    retired = find_retired_trust_phrasing(ROOT)
+    if retired:
+        failures.append(
+            "retired unqualified trust phrasing (tamper-evidence needs no anchor, but "
+            f"authorship needs a pinned key) at: {retired} — qualify it or quote-to-refute"
+        )
+    else:
+        print("OK  trust phrasing: no unqualified 'without trusting the producer'")
 
     if failures:
         print("\nDOCS-SYNC FAILED:")

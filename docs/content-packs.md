@@ -81,8 +81,9 @@ access to your database. Instead, export a **signed pack** and load it:
 ```
 
 Only the **signed pack** crosses the boundary. The engine verifies the Ed25519 signature
-(over `name + version + content_hash`) and, with `trusted_keys`, that it was signed by a
-key you trust:
+(over the whole manifest minus the signature block, bound to the `content_hash` — so
+`kind`, `sources` and `description` are signed too, not just name+version) and, with
+`trusted_keys`, that it was signed by a key you trust:
 
 ```bash
 aah run --content-pack ./acme-private --require-signature --trusted-key <pubkey-hex>
@@ -91,7 +92,8 @@ aah pack ./acme-private --trusted-key <pubkey-hex>   # inspect + verify offline
 
 A private pack that is tampered with (hash mismatch), unsigned (when a signature is
 required), forged (signature doesn't verify), or signed by an untrusted key is **rejected**
-— all offline, no network, no trust in the producer.
+— all offline, no network. Trust is explicit: a signed pack is accepted only when its key is
+in the **trusted-keys** allow-list you supply, never on the producer's say-so.
 
 ### Producing a signed pack
 
