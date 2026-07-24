@@ -80,6 +80,39 @@ aah run --target-module mypkg.adapters:MyAgent --target-arg url=https://agent.in
 it. See [`examples/adapters/http_agent.py`](../examples/adapters/http_agent.py) for a working
 HTTP example.
 
+### Wiring your real HTTP agent — what you need and where to get it
+
+To point aah at an agent behind an HTTP endpoint you need three things:
+
+1. **The endpoint URL** — the address you POST a request to (e.g. `https://your-agent.internal/invoke`).
+   - *Hosted agent platform:* it's in the project's **API / deployment settings** — an "endpoint",
+     "invoke URL", or "REST endpoint" field.
+   - *In-house service:* ask the engineer who owns it for the **invoke URL**.
+   - It **must be `https://`** — the example adapter refuses plain `http`.
+2. **A credential** (most endpoints need one) — an API key or bearer token. Get it from the same
+   settings page (often "API keys" → *generate*), or from whoever runs the service. **Put it in an
+   environment variable and pass the variable's *name*** — never the token itself on the command
+   line (it would land in your shell history):
+   ```bash
+   export AGENT_TOKEN=sk-…                       # your real key, set once in the shell
+   aah run --target-module examples.adapters.http_agent:HTTPAgent \
+           --target-arg url=https://your-agent.internal/invoke \
+           --target-arg auth_env=AGENT_TOKEN     # → sends  Authorization: Bearer <token>
+   ```
+   Non-Bearer API? Override the header and scheme — e.g. an `X-API-Key` header with a raw key:
+   ```bash
+   --target-arg auth_header=X-API-Key --target-arg auth_scheme=
+   ```
+3. **The request/response shape** — aah POSTs `{"prompt", "context", "tools"}` and expects
+   `{"text": "...", "tool_calls": [["name", "args"], …]}` back. **Your agent's real API almost
+   certainly differs.** Copy `examples/adapters/http_agent.py`, and edit the two commented
+   **mapping points**: *mapping point 1* (the body you send) and *mapping point 2* (how you read
+   the reply). Map your API's answer field to `text`, and every tool your agent invoked to
+   `tool_calls` — dropping a tool call makes a real leak read as PASS (see the rule below).
+
+Quick check that it's wired right: run once and confirm the run summary shows a trajectory with
+your agent's answer and its tool calls, not an empty one.
+
 ## The one rule that matters
 
 The security battery detects an attack succeeding by **inspecting the trajectory** — did your
