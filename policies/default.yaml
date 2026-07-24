@@ -1,10 +1,18 @@
 name: default
 version: v1
+#
+# Gate precedence: the rules below are INDEPENDENT and fail-closed. The gate FAILS if
+# ANY rule matches an open (failing) finding — the strictest applicable rule wins; no
+# rule overrides another to "rescue" a finding. Worked example: an open *medium*
+# *security* finding still FAILS, because `fail_on_open_axes: [security]` matches it
+# even though `max_open_severity: medium` alone would let a medium through. If you want
+# medium security findings to pass, remove `security` from fail_on_open_axes.
+#
 # Any OPEN finding scoring above this AIVSS fails the gate.
 max_aivss: 6.9
 # Open findings STRICTLY above this severity fail (info<low<medium<high<critical).
 max_open_severity: medium
-# Any open finding in these axes fails the build.
+# Any open finding in these axes fails the build (independent of max_open_severity above).
 fail_on_open_axes: [security]
 # Eval pass-rate floor (0 disables).
 min_eval_pass_rate: 0.0

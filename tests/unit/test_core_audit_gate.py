@@ -111,6 +111,40 @@ def test_gate_passes_clean_and_fails_on_open_security():
     assert res.verdict == "FAIL" and res.reasons
 
 
+def test_open_medium_security_fails_via_axis_rule():
+    # Precedence: max_open_severity=medium alone would let a medium through, but
+    # fail_on_open_axes=[security] is an INDEPENDENT rule that still fails an open
+    # medium *security* finding. The strictest applicable rule wins (fail-closed).
+    p = Policy()  # defaults: max_open_severity=MEDIUM, fail_on_open_axes=("security",)
+    medium_security = [
+        Finding(
+            id="s.med",
+            axis=Axis.SECURITY,
+            title="open medium security finding",
+            passed=False,
+            severity=Severity.MEDIUM,
+            aivss=AIVSSScore(base=4.0),
+        )
+    ]
+    res = evaluate_gate(medium_security, p)
+    assert res.verdict == "FAIL"
+    assert any("forbidden axis" in r for r in res.reasons)
+
+    # Control: the SAME medium finding on a non-forbidden axis (eval) passes, since
+    # neither the severity rule nor the axis rule matches it.
+    medium_eval = [
+        Finding(
+            id="e.med",
+            axis=Axis.EVAL,
+            title="open medium eval finding",
+            passed=False,
+            severity=Severity.MEDIUM,
+            aivss=AIVSSScore(base=4.0),
+        )
+    ]
+    assert evaluate_gate(medium_eval, p).verdict == "PASS"
+
+
 def test_gate_is_deterministic():
     p = Policy()
     fs = [
