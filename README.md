@@ -4,7 +4,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/forwardai-dev/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/forwardai-dev/agent-assurance-harness/actions)
 [![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-30%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-76%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](#)
 [![Docstrings](https://img.shields.io/badge/docstrings-98%25-brightgreen)](#)
 [![Ruff](https://img.shields.io/badge/lint-ruff-000000)](https://github.com/astral-sh/ruff)
@@ -147,7 +147,8 @@ Every AAEO carries a **mandatory scope + residual-risk statement**. We say what 
 - **Behavioral testing generates evidence, not a safety guarantee.** It cannot verify the safety *claims* regulators demand.
 - **v1 attacks are a FROZEN corpus** — robustness to a *fixed* attacker. Adaptive/feedback-guided attacks are **v2** (false comfort if unlabeled — so we label it).
 - **No LLM judge in the gate** in v1. The judged-eval track + its bias/κ qualification harness are **v2**.
-- Control mappings (OWASP-ASI/AIVSS/NIST/EU-AI-Act/ISO-42001/SOC2) are **informative mapping, NOT certification**.
+- Control mappings (OWASP-ASI/AIVSS/NIST/EU-AI-Act/ISO-42001/SOC2) are **informative mapping, NOT certification**. AIVSS and the OWASP Agentic-AI (ASI) taxonomy are **early-stage / draft** standards; treat scores and tags as tracking-the-draft, not settled.
+- **Reproducibility:** results are deterministic given a pinned seed (the bootstrap CIs use `random.Random(seed)`, default `seed=0`) plus a fixed Python/dependency set and canonical-JSON serialization — those are what make the sealed evidence bit-comparable across machines.
 - Not a runtime guardrail, not a GRC SaaS, not a hosted service. It **feeds** GRC tools (OSCAL export, roadmap); it stays in the pre-deploy/CI + audit lane.
 
 ## v2 roadmap (named, not faked)
