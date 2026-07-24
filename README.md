@@ -4,7 +4,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/forwardai-dev/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/forwardai-dev/agent-assurance-harness/actions)
 [![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-91%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-92%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)](#)
 [![Docstrings](https://img.shields.io/badge/docstrings-99%25-brightgreen)](#)
 [![Ruff](https://img.shields.io/badge/lint-ruff-000000)](https://github.com/astral-sh/ruff)
@@ -101,6 +101,10 @@ The forgery is caught **three independent ways**, offline. That is the whole the
 **Verify a real one yourself** — two evidence objects from a live agent assessment ship in
 [`examples/evidence/`](examples/evidence/) (one PASS, one FAIL): `aah verify examples/evidence/pass-agent-resisted.json`.
 
+**See a full `VERIFIED` (real authorship)** — the demo CLI signs with the published demo key, so
+`verify --trusted-key` tops out at `VERIFIED (DEMO KEY)`. To reach a genuine `VERIFIED` with a
+real producer key pinned, run [`examples/real_producer_key.py`](examples/real_producer_key.py).
+
 ## What makes it different (honest, defensible)
 1. **Portable, signed, hash-chained evidence object + offline `verify`.** Competitors emit
    ephemeral JSON/HTML with zero integrity; GRC platforms emit human-attested claims with
@@ -160,6 +164,6 @@ pluggable producer adapters (promptfoo/garak/Inspect) · sigstore/RFC-3161 exter
 OSCAL export to Credo AI / IBM watsonx.governance.
 
 ## Status
-Reference implementation. `pytest`: **91 passed**, fully offline. Not positioned as a
+Reference implementation. `pytest`: **92 passed**, fully offline. Not positioned as a
 production compliance gate a regulated enterprise stakes compliance on — it is an **evidence
 standard + reference implementation**. Licensed Apache-2.0.
