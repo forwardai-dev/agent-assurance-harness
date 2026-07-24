@@ -22,9 +22,11 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install -e ".[dev]" bandit interrogate pip-audit build twine "validate-pyproject[all]"
       - name: Lint (ruff)
-        run: ruff check src tests && ruff format --check src tests
+        run: ruff check src tests scripts && ruff format --check src tests scripts
       - name: Types (mypy)
         run: mypy src
+      - name: Docs-vs-repo sync (badge counts, ASI coverage don't drift)
+        run: PYTHONPATH=src python scripts/check_docs_sync.py
       - name: Docstring coverage (interrogate >= 80%)
         run: interrogate -c pyproject.toml src
       - name: Security (bandit)
