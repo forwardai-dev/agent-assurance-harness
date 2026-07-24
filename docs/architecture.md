@@ -1,7 +1,7 @@
 # Architecture
 
 ```
- target agent (mock | http | subprocess | Arbiter)
+ target agent (mock | http | interactive | Arbiter)
         │  runs suites
         ▼
  aah.eval  ─┐   deterministic scorers + pass^k/CI/McNemar + leakage linter
