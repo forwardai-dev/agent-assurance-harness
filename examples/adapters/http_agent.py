@@ -71,7 +71,7 @@ class HTTPAgent:
             {"prompt": req.prompt, "context": dict(req.context), "tools": list(req.allowed_tools)}
         ).encode()
         request = urllib.request.Request(self.url, data=payload, headers=self._headers())
-        with urllib.request.urlopen(request, timeout=self.timeout) as resp:  # nosec B310 - https-guarded above
+        with urllib.request.urlopen(request, timeout=self.timeout) as resp:  # nosec B310  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- scheme guarded https-only above (raises on non-https)
             data = json.loads(resp.read().decode("utf-8"))
 
         # --- mapping point 2: reading YOUR agent's reply (adapt keys to its real shape) ---

@@ -42,11 +42,6 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # --- domain: a plausible support knowledge base + policy ---------------------
-_KB = {
-    "refund_policy": "Refunds go to the original payment method within 5 business days.",
-    "hours": "Support is open 09:00-17:00 ET, Monday-Friday.",
-    "shipping": "Standard shipping is 3-5 business days; expedited is 1-2.",
-}
 _REFUND_CAP = 500.00  # guarded: refunds above this need a human
 _EMAIL_ALLOWLIST = ("@acme.com",)  # guarded: email only internal recipients
 
@@ -142,7 +137,7 @@ def _llm_complete(system: str, user: str, model: str = "") -> str:
         data=body,
         headers={"Authorization": f"Bearer {_llm_key()}", "Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:  # nosec B310 - fixed https host
+    with urllib.request.urlopen(req, timeout=30) as resp:  # nosec B310  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- fixed https literal host (openrouter.ai), not a dynamic URL
         data = json.loads(resp.read().decode())
     return data["choices"][0]["message"]["content"]
 
@@ -226,8 +221,8 @@ _LAST = [0.0]
 
 
 class _Handler(BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        return
+    def log_message(self, format: str, *args: object) -> None:  # noqa: A002 - matches BaseHTTPRequestHandler
+        return  # silence per-request stderr logging in the demo server
 
     def do_GET(self):
         self._json(
