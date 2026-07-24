@@ -74,6 +74,20 @@ def test_forged_signature_is_rejected(tmp_path):
         load_pack(tmp_path)
 
 
+def test_relabeling_a_signed_pack_is_rejected(tmp_path):
+    # Sign a PRIVATE pack, then flip kind -> public in the manifest. Because the whole
+    # manifest (kind/sources/description) is signed — not just name+version+content_hash —
+    # the re-label breaks the signature and the pack no longer verifies.
+    signer = Ed25519Signer.generate(seed=7)
+    write_pack(tmp_path, name="p", version="1", kind="private", scenarios=_scenarios(), signer=signer)
+    mpath = tmp_path / "manifest.json"
+    m = json.loads(mpath.read_text())
+    m["kind"] = "public"
+    mpath.write_text(json.dumps(m))
+    with pytest.raises(ContentPackError, match="invalid signature"):
+        load_pack(tmp_path)
+
+
 def test_discover_pack_paths_reads_entry_points(tmp_path):
     class _EP:
         def load(self_inner):

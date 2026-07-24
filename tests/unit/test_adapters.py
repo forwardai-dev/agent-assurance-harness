@@ -9,13 +9,23 @@ from aah.runner import run_assurance
 from aah.target.adapters import CallableAgent
 from aah.target.base import AgentRequest, AgentResponse
 from aah.target.interactive import InteractiveAgent
-from aah.target.loader import load_target
+from aah.target.loader import load_target, parse_target_args
 
 
 # ---- dynamic loader ---------------------------------------------------------
 def test_load_target_by_spec():
     t = load_target("aah.target.mock_agent:MockTargetAgent", profile="safe")
     assert t.name and hasattr(t, "run")
+
+
+def test_parse_target_args():
+    assert parse_target_args(["url=https://x/y", "auth_env=TOK"]) == {
+        "url": "https://x/y",
+        "auth_env": "TOK",
+    }
+    assert parse_target_args([]) == {}
+    with pytest.raises(ValueError, match="key=value"):
+        parse_target_args(["no_equals"])
 
 
 def test_load_target_rejects_bad_spec():

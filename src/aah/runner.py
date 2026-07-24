@@ -72,7 +72,7 @@ def run_assurance(
             "attack": [s.id for s in attack_scenarios],
         }
     )
-    tools = sorted({t for s in attack_scenarios for t in s.requests[0].allowed_tools})
+    tools = sorted({t for s in attack_scenarios for req in s.requests for t in req.allowed_tools})
     manifest = RunManifest(
         sut_name=getattr(target, "name", "unknown"),
         model_id=getattr(target, "name", "unknown"),

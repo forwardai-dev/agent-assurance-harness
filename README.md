@@ -4,9 +4,9 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/forwardai-dev/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/forwardai-dev/agent-assurance-harness/actions)
 [![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-82%20passing-brightgreen)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](#)
-[![Docstrings](https://img.shields.io/badge/docstrings-98%25-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-91%20passing-brightgreen)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)](#)
+[![Docstrings](https://img.shields.io/badge/docstrings-99%25-brightgreen)](#)
 [![Ruff](https://img.shields.io/badge/lint-ruff-000000)](https://github.com/astral-sh/ruff)
 [![Typed: mypy](https://img.shields.io/badge/typed-mypy-blue)](https://mypy-lang.org/)
 [![Security: bandit](https://img.shields.io/badge/security-bandit-yellow)](https://github.com/PyCQA/bandit)
@@ -160,6 +160,6 @@ pluggable producer adapters (promptfoo/garak/Inspect) · sigstore/RFC-3161 exter
 OSCAL export to Credo AI / IBM watsonx.governance.
 
 ## Status
-Reference implementation. `pytest`: **82 passed**, fully offline. Not positioned as a
+Reference implementation. `pytest`: **91 passed**, fully offline. Not positioned as a
 production compliance gate a regulated enterprise stakes compliance on — it is an **evidence
 standard + reference implementation**. Licensed Apache-2.0.

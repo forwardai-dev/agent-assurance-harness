@@ -34,11 +34,12 @@ class LeakReport:
     overlap: float
     has_canary: bool
     has_provenance: bool
+    threshold: float = 0.5
 
     @property
     def leaked(self) -> bool:
-        """True if n-gram overlap exceeds the leakage threshold."""
-        return self.overlap > 0.5 or self.has_canary or not self.has_provenance
+        """True if n-gram overlap exceeds the (caller-set) leakage threshold."""
+        return self.overlap > self.threshold or self.has_canary or not self.has_provenance
 
 
 def lint_golden(
@@ -54,5 +55,5 @@ def lint_golden(
         ov = ngram_overlap(text, known_corpus)
         canary = any(c in text for c in canaries)
         prov = bool(it.get("provenance"))
-        reports.append(LeakReport(it.get("id", "?"), ov, canary, prov))
+        reports.append(LeakReport(it.get("id", "?"), ov, canary, prov, threshold))
     return reports
