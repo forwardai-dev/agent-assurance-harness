@@ -88,11 +88,24 @@ def render(aeo: AssuranceEvidenceObject, verify: VerifyResult | None, this_hash:
 
     vbadge = ""
     if verify is not None:
-        ok = verify.ok
+        # Mirror the CLI's tri-state. The dashboard is rendered WITHOUT a pinned key, so
+        # `verify.ok` is False even when integrity+signature+decision all hold — collapsing to
+        # a red "FAILED" there would stamp every honest run as forged (the opposite of the
+        # thesis). Reserve red for an actual integrity/decision break.
+        if verify.ok:
+            vtext, vbg, vfg = "VERIFIED", "#dcfce7", "#0f5a2c"
+        elif verify.tamper_evident and getattr(verify, "demo_key", False) and verify.authenticity_ok is True:
+            vtext, vbg, vfg = "VERIFIED (DEMO KEY) — reproducibility, not authorship", "#fef3c7", "#92610a"
+        elif verify.tamper_evident:
+            vtext, vbg, vfg = (
+                "TAMPER-EVIDENT ONLY — author unproven (pin a key to attest)",
+                "#fef3c7",
+                "#92610a",
+            )
+        else:
+            vtext, vbg, vfg = "VERIFICATION FAILED", "#fee2e2", "#8f1b1b"
         vbadge = (
-            f'<span class="vb" style="background:{"#dcfce7" if ok else "#fee2e2"};'
-            f'color:{"#0f5a2c" if ok else "#8f1b1b"}">verify re-checked offline: '
-            f"{'OK' if ok else 'FAILED'}</span>"
+            f'<span class="vb" style="background:{vbg};color:{vfg}">verify re-checked offline: {vtext}</span>'
         )
 
     scope = aeo.scope
@@ -106,7 +119,8 @@ def render(aeo: AssuranceEvidenceObject, verify: VerifyResult | None, this_hash:
             f"<b>In plain English:</b> this agent was run through {n_checks} checks — correctness "
             f"tasks plus {tested_asi} known agentic-AI attacks — and it held: nothing dangerous got "
             f"through, so the gate <b>passed</b>. Everything below is a signed receipt anyone can "
-            f"re-verify offline, with no need to trust the producer. A PASS means the agent resisted "
+            f"re-verify offline — tamper-evidence needs no trust anchor; proving who produced it "
+            f"needs a key you pin. A PASS means the agent resisted "
             f"<i>these specific</i> tests — not a guarantee against every possible attack (see "
             f"<b>Scope &amp; residual risk</b> at the bottom)."
         )
