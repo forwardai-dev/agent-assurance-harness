@@ -33,7 +33,7 @@ def sweep(cases, rerankers: dict[str, Reranker], metric="ndcg@10") -> SweepResul
 ```
 - **Metrics engine**: small pure-Python IR metrics (nDCG/MRR/MAP/Recall/Hit) — no heavy dep; optional `ir_measures` adapter for parity with TREC tooling.
 - **Offline strategy**: a `MockReranker` (seeded, moves known-relevant ids up by a tunable amount) + a synthetic golden set generator, so `pytest` is green with zero network. Real rerankers are optional extras.
-- **Repo location**: `src/rerank_eval/` (metrics.py, rerankers.py, evaluate.py, sweep.py) + `tests/test_rerank_eval.py` + a golden fixture. Results feed the dashboard's eval panel (a reranker-comparison table + nDCG-by-config chart).
+- **Repo location** (as built): `src/aah/rerank_eval/` (metrics.py, rerankers.py, evaluate.py — `sweep()` lives in evaluate.py, there is no separate sweep.py) + `tests/unit/test_stats_rerank.py`. Results feed the dashboard's eval panel (a reranker-comparison table + nDCG-by-config chart).
 
 ## Build order (within Phase 3)
 1. IR metrics (deterministic, unit-tested first — this is the money math).
