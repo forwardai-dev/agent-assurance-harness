@@ -17,7 +17,7 @@ echo "== 3) Re-verify the PASS evidence OFFLINE — the trust-anchor distinction
 echo "   (a) with NO trust anchor -> TAMPER-EVIDENT ONLY (bytes intact, author unproven):"
 $AAH verify out/evidence.json | sed 's/^/      /' || true
 KEY=$(python3 -c "import json;print(json.load(open('out/evidence.json'))['seal']['public_key_hex'])")
-echo "   (b) pinning the producer's key -> VERIFIED (authorship established):"
+echo "   (b) pinning the PUBLISHED demo key -> VERIFIED (DEMO KEY): reproducibility, not authorship — a real producer key would establish authorship:"
 $AAH verify out/evidence.json --trusted-key "$KEY" | sed 's/^/      /'
 
 echo
