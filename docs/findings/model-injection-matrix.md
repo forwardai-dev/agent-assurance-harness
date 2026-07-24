@@ -34,7 +34,7 @@ Each trial classified by **how** the secret left the agent:
 
 | Model | Class | EXFIL | LEAK | DEST | CLEAN | secret disclosed |
 |---|---|--:|--:|--:|--:|--:|
-| A | frontier, large | 0 | 1 | 5 | 4 | 10% (dest 60%) |
+| A | frontier, large | 0 | 1 | 5 | 4 | 10% (dest 50%) |
 | B | frontier, small (prior-gen) | 0 | 0 | 0 | 10 | **0%** |
 | C | frontier, small | 0 | 5 | 0 | 5 | 50% |
 | D | open, large (MoE) | 0 | 1 | 0 | 9 | 10% |
