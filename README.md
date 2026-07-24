@@ -4,7 +4,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/forwardai-dev/agent-assurance-harness/ci.yml?branch=main&label=ci)](https://github.com/forwardai-dev/agent-assurance-harness/actions)
 [![Python](https://img.shields.io/badge/python-3.11%20|%203.12%20|%203.13-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-76%20passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-80%20passing-brightgreen)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](#)
 [![Docstrings](https://img.shields.io/badge/docstrings-98%25-brightgreen)](#)
 [![Ruff](https://img.shields.io/badge/lint-ruff-000000)](https://github.com/astral-sh/ruff)
