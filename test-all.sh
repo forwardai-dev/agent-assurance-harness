@@ -64,7 +64,10 @@ aah_ verify /tmp/aah_v/evidence.json >/tmp/aah_vn.log 2>&1; vn=$?
 [ "$vn" -eq 3 ]; rec "verify with NO anchor -> exit 3 / TAMPER-EVIDENT ONLY" $? "exit $vn"
 KEY="$(python3 -c "import json;print(json.load(open('/tmp/aah_v/evidence.json'))['seal']['public_key_hex'])" 2>/dev/null)"
 aah_ verify /tmp/aah_v/evidence.json --trusted-key "$KEY" >/tmp/aah_va.log 2>&1; va=$?
-[ "$va" -eq 0 ]; rec "verify --trusted-key -> exit 0 / VERIFIED" $? "exit $va"
+# The demo artifact is signed with the PUBLISHED seed=1 key, so pinning it proves
+# reproducibility, not authorship: verify returns exit 4 / VERIFIED (DEMO KEY). A real
+# producer key would return exit 0 / VERIFIED.
+[ "$va" -eq 4 ]; rec "verify --trusted-key (published demo key) -> exit 4 / VERIFIED (DEMO KEY)" $? "exit $va"
 hr
 
 echo "RESULT: ${PASS} passed, ${FAIL} failed"
