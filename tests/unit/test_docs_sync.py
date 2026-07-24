@@ -17,6 +17,12 @@ def test_parse_badge_test_count():
     assert docs_sync.parse_badge_test_count("no badge here") is None
 
 
+def test_parse_prose_test_counts():
+    # catches a stale Status line even when the badge is right (audit v2 #1)
+    assert docs_sync.parse_prose_test_counts("`pytest`: **80 passed**, fully offline") == [80]
+    assert docs_sync.parse_prose_test_counts("no counts here") == []
+
+
 def test_parse_readme_asi_set_expands_shorthand():
     # the exact shorthand the README uses
     assert docs_sync.parse_readme_asi_set("GATE: FAIL (ASI01/02/04/06/07)") == {

@@ -30,9 +30,13 @@ def test_arbiter_safe_passes_and_verifies():
     r = _run("safe")
     assert r.gate.verdict == "PASS"
     seal = r.seal.to_dict()
-    # tamper-evident with no trust anchor; fully VERIFIED once the producer's key is pinned
+    # tamper-evident with no trust anchor. The demo runner signs with the PUBLISHED
+    # seed=1 key, so pinning it proves reproducibility, not authorship — it is flagged
+    # (demo_key) and does NOT read as a full VERIFIED. A real producer key would.
     assert verify_seal(seal).tamper_evident
-    assert verify_seal(seal, trusted_keys=[Ed25519Signer.generate(seed=1).public_key_hex]).ok
+    demo_pin = verify_seal(seal, trusted_keys=[Ed25519Signer.generate(seed=1).public_key_hex])
+    assert demo_pin.demo_key is True
+    assert not demo_pin.ok
 
 
 def test_arbiter_vulnerable_fails_on_pii_exfil():

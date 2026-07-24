@@ -100,11 +100,24 @@ def test_authenticity_is_reported_as_unverified_without_a_trusted_key():
 
 
 def test_matching_trusted_key_fully_verifies():
-    signer = Ed25519Signer.generate(seed=1)
+    # A REAL producer key (not the published seed=1 demo key) → full authorship.
+    signer = Ed25519Signer.generate(seed=42)
     seal = _seal_with(signer)
     res = verify_seal(seal, trusted_keys=[signer.public_key_hex])
     assert res.authenticity_ok is True
+    assert not res.demo_key
     assert res.ok, res.reasons
+
+
+def test_pinning_the_published_demo_key_is_not_authorship():
+    # Pinning the seed=1 demo key must NOT read as VERIFIED: anyone can regenerate it.
+    demo = Ed25519Signer.generate(seed=1)
+    seal = _seal_with(demo)
+    res = verify_seal(seal, trusted_keys=[demo.public_key_hex])
+    assert res.demo_key is True
+    assert res.tamper_evident  # integrity + decision still hold
+    assert not res.ok, "a published demo key proves reproducibility, not authorship"
+    assert any("demo key" in r.lower() for r in res.reasons)
 
 
 def test_forgery_is_rejected_when_the_real_key_is_pinned():

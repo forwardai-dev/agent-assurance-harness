@@ -173,7 +173,10 @@ def cmd_verify(args) -> int:
     res = verify_seal(bundle["seal"], trusted_keys=trusted)
     print(f"integrity : {'OK' if res.integrity_ok else 'FAIL'}")
     print(f"signature : {'OK' if res.signature_ok else 'FAIL'}")
-    authorship = {True: "OK", False: "FAIL", None: "UNVERIFIED (no --trusted-key)"}[res.authenticity_ok]
+    if res.demo_key:
+        authorship = "DEMO KEY (reproducibility, not authorship)"
+    else:
+        authorship = {True: "OK", False: "FAIL", None: "UNVERIFIED (no --trusted-key)"}[res.authenticity_ok]
     print(f"authorship: {authorship}")
     print(
         f"decision  : {'OK' if res.decision_ok else 'FAIL'} (recorded={res.recorded_verdict} replayed={res.replayed_verdict})"
@@ -183,6 +186,12 @@ def cmd_verify(args) -> int:
     if res.ok:
         print("VERIFIED")
         return 0
+    if res.demo_key and res.tamper_evident and res.authenticity_ok is True:
+        # The verifier pinned the published demo key. Integrity + decision replay hold,
+        # but authorship does NOT — anyone can regenerate that key. Distinct verdict and
+        # exit code so a naive "I pinned a key, it says VERIFIED" can't overstate trust.
+        print("VERIFIED (DEMO KEY) — reproducibility only; pin a real producer key to prove authorship")
+        return 4
     if res.tamper_evident and res.authenticity_ok is None:
         # Distinguish "intact but unattributed" from "broken". Collapsing them would
         # either overstate an unsigned-for artifact or cry wolf on a sound one.
