@@ -1,6 +1,6 @@
 """The plug-in target-agent interface — the System-Under-Test (SUT) seam.
 
-Any agent (mock, HTTP/OpenAI-compatible, subprocess, Arbiter) is assessed through this
+Any agent (mock, HTTP/OpenAI-compatible, interactive, Arbiter) is assessed through this
 one Protocol, so the harness is model-agnostic and BYO-agent. Offline-first: the default
 registry target is a deterministic scripted mock.
 """
