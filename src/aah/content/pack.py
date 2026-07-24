@@ -7,8 +7,8 @@ A pack on disk is a directory:
       scenarios/asi-battery.json   # {"scenarios": [ ... ]}
 
 `content_hash` is a deterministic SHA-256 over the scenarios payload; loading always
-recomputes it and rejects a mismatch. An optional `signature` block (Ed25519 over
-name+version+content_hash) lets a producer prove authorship — the mechanism by which a
+recomputes it and rejects a mismatch. An optional `signature` block (Ed25519 over the whole
+manifest minus the signature, bound to content_hash) lets a producer prove authorship — the mechanism by which a
 PRIVATE pack, exported from internal infra, is trusted without exposing that infra.
 """
 

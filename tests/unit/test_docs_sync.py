@@ -42,6 +42,19 @@ def test_battery_asi_set_reads_real_source():
     assert docs_sync.battery_asi_set(attack_dir) == {"ASI01", "ASI02", "ASI04", "ASI06", "ASI07"}
 
 
+def test_find_retired_trust_phrasing_allows_qualified_and_flags_bare(tmp_path):
+    # bare/unqualified -> flagged; qualified (tooling) or quoted -> allowed
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "src").mkdir()
+    (tmp_path / "README.md").write_text("intro")
+    (tmp_path / "docs" / "bad.md").write_text("re-verify with no producer trust, no vendor.")
+    (tmp_path / "docs" / "ok1.md").write_text("re-verify without trusting the producer's tooling.")
+    (tmp_path / "docs" / "ok2.md").write_text('an earlier README said "without trusting the producer" — wrong.')
+    hits = docs_sync.find_retired_trust_phrasing(tmp_path)
+    assert any("bad.md" in h for h in hits)
+    assert not any("ok1.md" in h or "ok2.md" in h for h in hits)
+
+
 def test_repo_is_actually_in_sync():
     # end-to-end: the committed README + battery pass every check (real count included)
     assert docs_sync.main() == 0

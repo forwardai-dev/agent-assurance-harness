@@ -23,7 +23,8 @@ We will position the product as a **standard**: the **Agent Assurance Evidence O
 model / seed / harness-version / dataset-hash / policy-version plus every per-check result —
 together with a gate that emits it. The load-bearing property is **vendor-neutral offline
 attestation**: an auditor re-verifies the evidence **air-gapped, from the artifact alone,
-with no network and without trusting the producer**. Existing tools become pluggable
+with no network** (tamper-evidence); authorship is a separate check against a producer key
+the verifier pins (`aah verify --trusted-key`). Existing tools become pluggable
 *producers* that emit *into* the AAEO via a common `Finding` schema. Think "SLSA / SBOM /
 in-toto, for agent assurance."
 
