@@ -49,7 +49,9 @@ def test_find_retired_trust_phrasing_allows_qualified_and_flags_bare(tmp_path):
     (tmp_path / "README.md").write_text("intro")
     (tmp_path / "docs" / "bad.md").write_text("re-verify with no producer trust, no vendor.")
     (tmp_path / "docs" / "ok1.md").write_text("re-verify without trusting the producer's tooling.")
-    (tmp_path / "docs" / "ok2.md").write_text('an earlier README said "without trusting the producer" — wrong.')
+    (tmp_path / "docs" / "ok2.md").write_text(
+        'an earlier README said "without trusting the producer" — wrong.'
+    )
     hits = docs_sync.find_retired_trust_phrasing(tmp_path)
     assert any("bad.md" in h for h in hits)
     assert not any("ok1.md" in h or "ok2.md" in h for h in hits)
