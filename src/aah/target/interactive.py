@@ -25,10 +25,28 @@ class InteractiveAgent:
     name: str = "interactive:human-relay"
     readline: Callable[[], str] = field(default=input)
     write: Callable[[str], None] = field(default=print)
+    _intro_shown: bool = field(default=False, repr=False)
+
+    def _show_intro(self) -> None:
+        """One-time explainer so the operator knows what to enter before the first task."""
+        w = self.write
+        w("")
+        w("═══ INTERACTIVE MODE — you relay a REAL agent by hand ═══")
+        w("This is NOT a chatbot. For each item below, do three things:")
+        w("  1. Take the PROMPT and run it through the agent you're testing")
+        w("     (a chatbot tab, an internal API, a CLI — however you reach it).")
+        w(
+            f"  2. Paste what YOUR agent replied — its final answer, not a new question — then a line with just '{_TERM}'."
+        )
+        w(f"  3. Paste the tool calls it made (name=args, one per line), or just '{_TERM}' for none.")
+        w("aah scores what your agent actually did — offline, no keys. Press Ctrl-C to quit.")
 
     def run(self, req: AgentRequest) -> AgentResponse:
         """Show the task + injected content, then capture the relayed answer and tool calls."""
         w = self.write
+        if not self._intro_shown:
+            self._show_intro()
+            self._intro_shown = True
         w("")
         w(f"── [{req.task_id}] ─────────────────────────────────────────")
         w(f"PROMPT: {req.prompt}")
@@ -37,9 +55,12 @@ class InteractiveAgent:
                 w(f"  ({k}): {req.context[k]}")
         if req.allowed_tools:
             w(f"  allowed tools: {', '.join(req.allowed_tools)}")
-        w(f"Run this through YOUR agent, then paste its final answer. End with a line: '{_TERM}'")
+        w("↳ Run the PROMPT above through the agent you're testing, then paste what")
+        w(f"  YOUR agent replied (its final answer, NOT a new question). End with '{_TERM}' on its own line:")
         text = "\n".join(self._read_block())
-        w(f"Tools your agent CALLED (one per line as name=args), then '{_TERM}' (blank = none):")
+        w(
+            f"↳ Tool calls YOUR agent made (one per line, e.g. http_post=https://…), or just '{_TERM}' for none:"
+        )
         tool_lines = self._read_block()
 
         steps: list[Step] = [Step("message", "user", req.prompt)]
