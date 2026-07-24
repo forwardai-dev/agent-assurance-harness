@@ -51,7 +51,7 @@ def default_fetcher(url: str, timeout: float = 8.0) -> str:
     if not url.startswith("https://"):
         raise ValueError(f"refusing non-https URL: {url!r}")  # no file:// / custom schemes
     req = urllib.request.Request(url, headers={"User-Agent": "aah-threat-content-updater"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310 - https-only, guarded above
+    with urllib.request.urlopen(req, timeout=timeout) as resp:  # nosec B310  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected -- scheme guarded https-only above (no file://)
         return resp.read().decode("utf-8", errors="replace")
 
 

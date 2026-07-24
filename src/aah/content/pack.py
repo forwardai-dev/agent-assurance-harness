@@ -328,6 +328,7 @@ def load_pack(
 
 def bundled_public_root() -> Any:
     """Return the importlib path to the public pack shipped inside the wheel."""
+    # nosemgrep: python.lang.compatibility.python37.python37-compatibility-importlib2 -- requires-python >=3.11
     from importlib.resources import files
 
     return files("aah.content") / "packs" / "public"

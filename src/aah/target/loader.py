@@ -21,6 +21,7 @@ def load_target(spec: str, **kwargs: Any) -> Any:
     mod_name, sep, attr = spec.partition(":")
     if not sep or not attr:
         raise ValueError(f"target spec must be 'module:Attribute', got {spec!r}")
+    # nosemgrep: python.lang.security.audit.non-literal-import.non-literal-import -- by design: the operator loads their OWN adapter (module:Attribute); it is validated to be a TargetAgent below
     obj = getattr(importlib.import_module(mod_name), attr)
     target = obj(**kwargs) if callable(obj) else obj
     if not hasattr(target, "run") or not hasattr(target, "name"):
