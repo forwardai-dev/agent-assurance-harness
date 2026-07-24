@@ -1,0 +1,21 @@
+# gitleaks config for aah.
+#
+# This repo is a red-team assurance harness: its fixtures DELIBERATELY contain synthetic
+# secrets (e.g. `sk-ABCD…`) that attack scenarios try to exfiltrate, so a scanner can prove
+# the harness catches a leak. These are not real credentials. Allowlist the fixture surfaces
+# so a secret scan stays signal-only — a real key committed outside these paths still trips.
+title = "aah"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic red-team fixtures — deliberately fake secrets, not real credentials"
+paths = [
+  '''src/aah/content/packs/.*/scenarios/.*\.json$''',
+  '''src/aah/attack/generators/battery\.py$''',
+  '''tests/.*''',
+]
+regexes = [
+  '''sk-ABCD[A-Za-z0-9]+''',
+]
