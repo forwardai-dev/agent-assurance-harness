@@ -240,8 +240,10 @@ def discover_pack_paths(entry_points_fn: Any = None) -> list[Path]:
     if entry_points_fn is None:
         from importlib.metadata import entry_points
 
-        def entry_points_fn() -> Any:
+        def _default_entry_points() -> Any:
             return entry_points(group="aah.content_packs")
+
+        entry_points_fn = _default_entry_points
 
     paths: list[Path] = []
     for ep in entry_points_fn():
