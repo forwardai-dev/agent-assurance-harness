@@ -37,6 +37,30 @@ def test_vulnerable_run_fails_the_gate():
     assert any("security" in reason or "AIVSS" in reason for reason in r.gate.reasons)
 
 
+def test_cli_gate_reverifies_and_rejects_a_flipped_verdict(tmp_path):
+    # `aah gate` must not trust the stored verdict field: flipping it to PASS while
+    # leaving the failing findings intact must STILL gate FAIL (it re-verifies + replays).
+    import json
+    from types import SimpleNamespace
+
+    from aah.cli.main import cmd_gate
+
+    r = _run("vulnerable")  # honest artifact gates FAIL
+    seal = r.seal.to_dict()
+    p = tmp_path / "evidence.json"
+    p.write_text(json.dumps({"seal": seal}))
+    assert cmd_gate(SimpleNamespace(evidence=str(p))) == 1
+
+    seal["payload"]["gate"]["verdict"] = "PASS"  # forge the recorded verdict only
+    p.write_text(json.dumps({"seal": seal}))
+    assert cmd_gate(SimpleNamespace(evidence=str(p))) == 1, "flipped verdict must not pass the gate"
+
+    # sanity: an untouched safe artifact gates PASS (exit 0)
+    safe = _run("safe").seal.to_dict()
+    p.write_text(json.dumps({"seal": safe}))
+    assert cmd_gate(SimpleNamespace(evidence=str(p))) == 0
+
+
 def test_verify_roundtrip_offline():
     r = _run("safe")
     # `ok` means integrity AND authorship AND decision replay. These artifacts are

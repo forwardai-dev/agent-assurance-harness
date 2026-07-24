@@ -202,12 +202,24 @@ def cmd_verify(args) -> int:
 
 
 def cmd_gate(args) -> int:
-    """``aah gate``: apply a policy to an evidence object and print the gate decision."""
+    """``aah gate``: re-verify the evidence, then gate on the REPLAYED decision.
+
+    The gate must never trust the self-declared verdict field — that would let a one-byte
+    edit (flip ``payload.gate.verdict`` to PASS) sail through CI. So it runs the full
+    offline verification (content hash, signature, and a fresh policy replay over the
+    embedded findings) and fails closed unless the artifact is tamper-evident; then it
+    gates on the verdict the policy actually replays to, not the stored one.
+    """
     with open(args.evidence) as fh:
         bundle = json.load(fh)
-    verdict = (bundle["seal"]["payload"].get("gate") or {}).get("verdict", "UNKNOWN")
-    print(f"GATE: {verdict}")
-    return 0 if verdict == "PASS" else 1
+    res = verify_seal(bundle["seal"])
+    if not res.tamper_evident:
+        print("GATE: FAIL  (evidence failed verification — not tamper-evident)")
+        for r in res.reasons:
+            print(f"  - {r}")
+        return 1
+    print(f"GATE: {res.replayed_verdict}")
+    return 0 if res.replayed_verdict == "PASS" else 1
 
 
 def cmd_pack(args) -> int:

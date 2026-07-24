@@ -82,6 +82,20 @@ def verify_seal(seal: dict, trusted_keys: list[str] | None = None) -> VerifyResu
     """seal = Seal.to_dict() (payload + prev_hash + timestamp + public_key_hex + signature + this_hash)."""
     reasons: list[str] = []
 
+    # This verifies UNTRUSTED input, so a malformed seal must fail cleanly, not raise.
+    required = ("payload", "prev_hash", "timestamp", "public_key_hex", "signature", "this_hash")
+    missing = [k for k in required if k not in seal]
+    if missing:
+        return VerifyResult(
+            integrity_ok=False,
+            signature_ok=False,
+            decision_ok=False,
+            recorded_verdict="UNKNOWN",
+            replayed_verdict="UNKNOWN",
+            reasons=(f"malformed seal: missing required field(s) {missing}",),
+            authenticity_ok=None,
+        )
+
     presign = {
         "payload": seal["payload"],
         "prev_hash": seal["prev_hash"],

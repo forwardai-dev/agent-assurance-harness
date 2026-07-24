@@ -43,7 +43,7 @@ class OracleMockReranker:
     name: str = "mock-oracle"
 
     def rerank(self, query: str, candidates: list[str]) -> list[str]:
-        """Rerank candidates by lexical overlap with the query."""
+        """Move known-relevant ids toward the top by relevance-set membership, scaled by strength."""
         rel = self.relevant_by_query.get(query, set())
         if self.strength >= 1.0:
             rels = [c for c in candidates if c in rel]
@@ -68,7 +68,6 @@ class ReciprocalRankFusion:
     name: str = "rrf"
 
     def rerank(self, query: str, candidates: list[str]) -> list[str]:
-        # single-list RRF degenerates to identity; real use fuses >1 list.
-        """Rerank candidates using the provided score function."""
+        """Rerank by reciprocal-rank score 1/(k+rank); single-list RRF degenerates to identity."""
         scores = {c: 1.0 / (self.k + i + 1) for i, c in enumerate(candidates)}
         return sorted(candidates, key=lambda c: -scores[c])

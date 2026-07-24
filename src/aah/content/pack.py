@@ -169,14 +169,20 @@ def scenarios_content_hash(scenarios: list[dict]) -> str:
 # ---------------------------------------------------------------------------
 # signing
 # ---------------------------------------------------------------------------
-def _signable_bytes(name: str, version: str, chash: str) -> bytes:
-    """Canonical bytes an Ed25519 signature covers: identity bound to content hash."""
-    return canonical_bytes({"name": name, "version": version, "content_hash": chash})
+def _signable_bytes(manifest: dict, chash: str) -> bytes:
+    """Canonical bytes an Ed25519 signature covers: the WHOLE manifest (minus the
+    signature block) bound to the authoritative content hash — so ``kind``, ``sources``
+    and ``description`` are signed too, not just name/version/content_hash. Signing only
+    the identity+hash triple would let a signed *private* pack be re-labelled ``public``
+    with forged ``sources`` and still verify, misattributing its provenance."""
+    signable = {k: v for k, v in manifest.items() if k not in ("signature", "content_hash")}
+    signable["content_hash"] = chash
+    return canonical_bytes(signable)
 
 
 def sign_manifest(manifest: dict, signer: Ed25519Signer) -> dict:
     """Attach an Ed25519 ``signature`` block to a manifest dict and return it."""
-    sig = signer.sign(_signable_bytes(manifest["name"], manifest["version"], manifest["content_hash"]))
+    sig = signer.sign(_signable_bytes(manifest, manifest["content_hash"]))
     manifest = dict(manifest)
     manifest["signature"] = {"algo": "ed25519", "public_key": signer.public_key_hex, "sig": sig}
     return manifest
@@ -285,7 +291,7 @@ def load_pack(
     if sig_block:
         pub = sig_block["public_key"]
         ok = Ed25519Verifier().verify(
-            _signable_bytes(manifest["name"], manifest["version"], computed),
+            _signable_bytes(manifest, computed),
             sig_block["sig"],
             pub,
         )
