@@ -14,11 +14,12 @@ jobs:
           PYTHONPATH=src python -m aah.cli.main run --out out
           # Integrity + decision replay hold from the artifact alone. Without a trust
           # anchor that is TAMPER-EVIDENT ONLY (exit 3) by design — a self-asserted key
-          # proves no authorship. Assert that honest verdict rather than papering over it.
-          PYTHONPATH=src python -m aah.cli.main verify out/evidence.json; rc=$?; test "$rc" -eq 3
+          # proves no authorship. Assert that honest verdict. NB: `|| rc=$?` so `set -e`
+          # doesn't abort on the intended non-zero exit before we can check it.
+          rc=0; PYTHONPATH=src python -m aah.cli.main verify out/evidence.json || rc=$?; test "$rc" -eq 3
           # The demo runner signs with the PUBLISHED seed=1 key, so pinning it proves
           # reproducibility, not authorship: verify flags it distinctly (exit 4). A real
           # producer would pin a private key here and get a full VERIFIED (exit 0).
           KEY=$(python -c "import json;print(json.load(open('out/evidence.json'))['seal']['public_key_hex'])")
-          PYTHONPATH=src python -m aah.cli.main verify out/evidence.json --trusted-key "$KEY"; rc=$?; test "$rc" -eq 4
+          rc=0; PYTHONPATH=src python -m aah.cli.main verify out/evidence.json --trusted-key "$KEY" || rc=$?; test "$rc" -eq 4
           PYTHONPATH=src python -m aah.cli.main gate   out/evidence.json   # non-zero fails the PR
