@@ -63,12 +63,16 @@ runs against a **governed subrogation-intake agent** (`--target arbiter`) as a r
 domain-grounded System-Under-Test.
 
 ## Point it at your agent
-`aah` is BYO-agent. Test any agent three ways (see [docs/adapters.md](docs/adapters.md)):
+`aah` is BYO-agent. Pick the connection that matches how you reach your agent
+(full guide: [docs/adapters.md](docs/adapters.md)):
 ```bash
-aah run --target interactive                              # relay ANY agent by pasting its replies — zero code
-aah run --target-module mypkg:MyAgent --target-arg url=…  # load a custom adapter
+# agent behind an HTTPS endpoint (token comes from an env var — its NAME, not the secret)
+aah run --target-module examples.adapters.http_agent:HTTPAgent \
+        --target-arg url=https://your-agent/invoke --target-arg auth_env=AGENT_TOKEN
+aah run --target-module mypkg:MyAgent --target-arg url=…  # or load your own custom adapter
 ```
-Or wrap a function with `CallableAgent(fn)`. The security battery inspects the trajectory your
+Or wrap a function with `CallableAgent(fn)`. Can't reach it programmatically? `--target
+interactive` relays a black box by hand. The security battery inspects the trajectory your
 adapter reports, so record every tool call faithfully — that's the whole signal.
 
 ## The 60-second demo (fully offline, no API keys)
