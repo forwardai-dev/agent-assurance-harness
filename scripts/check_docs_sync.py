@@ -62,7 +62,12 @@ def battery_asi_set(attack_dir: Path) -> set[str]:
     return ids
 
 
-_RETIRED_TRUST = ("no producer trust", "no trust in the producer", "without trusting the producer")
+_RETIRED_TRUST = (
+    "no producer trust",
+    "no trust in the producer",
+    "without trusting the producer",
+    "no need to trust the producer",
+)
 _TRUST_QUALIFIERS = ("tooling", "trusted-key", "tamper-evidence", "self-asserted authorship")
 
 
