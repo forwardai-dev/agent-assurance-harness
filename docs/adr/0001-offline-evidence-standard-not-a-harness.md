@@ -7,7 +7,7 @@
 
 ## In plain English
 
-If I just built another testing tool, I'd be fighting well-funded companies on their own turf and losing. So I flipped it: instead of a tool, I built a standard — a signed "receipt" for an AI safety test that anyone can re-check themselves, offline, without trusting me. **That's the one thing a big cloud vendor can't copy**, because letting you verify without them would kill their own lock-in.
+If I just built another testing tool, I'd be fighting well-funded companies on their own turf and losing. So I flipped it: instead of a tool, I built a standard — a signed "receipt" for an AI safety test that anyone can re-check themselves, offline, without taking my word for it. **That's the one thing a big cloud vendor can't copy**, because letting you verify without them would kill their own lock-in.
 
 ## Context
 The obvious framing for an eval + security + governance tool is a "unified harness."
