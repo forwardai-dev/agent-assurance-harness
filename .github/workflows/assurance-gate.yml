@@ -1,5 +1,9 @@
 name: assurance-gate
 on: [pull_request]
+
+permissions:
+  contents: read
+
 jobs:
   gate:
     runs-on: ubuntu-latest
