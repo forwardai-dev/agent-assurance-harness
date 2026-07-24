@@ -32,6 +32,15 @@ def parse_badge_test_count(readme: str) -> int | None:
     return int(m.group(1)) if m else None
 
 
+def parse_prose_test_counts(readme: str) -> list[int]:
+    """Every test count stated in README prose, e.g. `pytest`: **80 passed**.
+
+    The badge is not the only place a count rots — a stale `**30 passed**` in the
+    Status line is exactly what audit v2 caught. Guard those too.
+    """
+    return [int(m.group(1)) for m in re.finditer(r"\*\*(\d+) passed\*\*", readme)]
+
+
 def parse_readme_asi_set(readme: str) -> set[str]:
     """Expand every `ASI01` / `ASI01/02/04` shorthand in the README into a set of ids.
 
@@ -86,6 +95,16 @@ def main() -> int:
         )
     else:
         print(f"OK  test count: badge {badge} == collected {real}")
+
+    # 1b. any test count stated in README prose (e.g. the Status line) must also match
+    for prose in parse_prose_test_counts(readme):
+        if prose != real:
+            failures.append(
+                f"test-count drift in README prose: `**{prose} passed**` but pytest "
+                f"collects {real} — update it to `**{real} passed**`"
+            )
+    if parse_prose_test_counts(readme):
+        print(f"OK  prose test counts {parse_prose_test_counts(readme)} all == {real}")
 
     # 2. README must not advertise ASI coverage the battery doesn't implement
     advertised = parse_readme_asi_set(readme)

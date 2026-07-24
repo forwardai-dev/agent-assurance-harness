@@ -1,6 +1,6 @@
 """Deterministic secret detection on agent traces (trufflehog-style) — ASI04 surface.
 
-Scans a trajectory for high-signal secret patterns. Reused conceptually from Sanju's
+Scans a trajectory for high-signal secret patterns. Adapted from prior internal
 security tooling; here it is a small, dependency-free, deterministic detector.
 """
 

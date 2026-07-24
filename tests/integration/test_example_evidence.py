@@ -23,9 +23,10 @@ def test_example_evidence_verifies_offline(name, verdict):
     assert res.integrity_ok and res.signature_ok and res.decision_ok
     assert res.tamper_evident and res.authenticity_ok is None and not res.ok
     assert res.recorded_verdict == res.replayed_verdict == verdict
-    # Pin the producer's own key as the trust anchor -> fully VERIFIED.
+    # These example artifacts are signed with the PUBLISHED demo key, so pinning it
+    # proves reproducibility, not authorship -> flagged (demo_key), not a full VERIFIED.
     trusted = verify_seal(seal, trusted_keys=[seal["public_key_hex"]])
-    assert trusted.ok and trusted.authenticity_ok is True
+    assert trusted.demo_key is True and trusted.tamper_evident and not trusted.ok
 
 
 def test_example_forgery_is_caught():

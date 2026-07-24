@@ -36,6 +36,10 @@ class VerifyResult:
     #: so authorship is simply unknown. None is NOT a pass: a signature verified against
     #: a key carried inside the artifact proves only that whoever wrote it also signed it.
     authenticity_ok: bool | None = None
+    #: True when the seal was signed by the PUBLISHED demo key (seed=1). Anyone can
+    #: reproduce that key, so pinning it proves reproducibility, never authorship — it
+    #: must not read as a full VERIFIED even when the verifier "pins" it.
+    demo_key: bool = False
 
     @property
     def ok(self) -> bool:
@@ -44,8 +48,16 @@ class VerifyResult:
         `authenticity_ok is None` (no trust anchor supplied) deliberately fails this.
         The standard's claim is offline re-verification "without trusting the producer";
         self-asserted authorship cannot deliver that, so it must not read as VERIFIED.
+        A signature under the published demo key (`demo_key`) also fails this: a key
+        anyone can regenerate authenticates no one, so pinning it is not authorship.
         """
-        return self.integrity_ok and self.signature_ok and self.decision_ok and self.authenticity_ok is True
+        return (
+            self.integrity_ok
+            and self.signature_ok
+            and self.decision_ok
+            and self.authenticity_ok is True
+            and not self.demo_key
+        )
 
     @property
     def tamper_evident(self) -> bool:
@@ -122,12 +134,21 @@ def verify_seal(seal: dict, trusted_keys: list[str] | None = None) -> VerifyResu
                 else "untrusted signer: an empty trusted-keys allow-list trusts no one"
             )
 
-    if seal_key and seal_key == _demo_public_key_hex().lower():
+    used_demo_key = bool(seal_key) and seal_key == _demo_public_key_hex().lower()
+    if used_demo_key:
         reasons.append(
             "signed with the PUBLISHED demo key (seed=1 in runner.py): reproducible by "
-            "anyone, so it attests reproducibility, not authorship"
+            "anyone, so it attests reproducibility, not authorship — pinning it does NOT "
+            "prove who produced the artifact"
         )
 
     return VerifyResult(
-        integrity_ok, signature_ok, decision_ok, recorded, replayed, tuple(reasons), authenticity_ok
+        integrity_ok,
+        signature_ok,
+        decision_ok,
+        recorded,
+        replayed,
+        tuple(reasons),
+        authenticity_ok,
+        demo_key=used_demo_key,
     )

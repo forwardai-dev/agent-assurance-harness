@@ -1,4 +1,4 @@
-"""Leakage linter — a merge gate on golden sets (the ForwardAI no-leakage guardrail).
+"""Leakage linter — a merge gate on golden sets (the no-leakage guardrail).
 
 Flags golden items that overlap a known training/eval corpus (n-gram overlap + canary
 strings) or that lack provenance. A leaky benchmark gives the WRONG-signed result, so
