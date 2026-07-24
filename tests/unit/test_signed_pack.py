@@ -90,7 +90,7 @@ def test_relabeling_a_signed_pack_is_rejected(tmp_path):
 
 def test_discover_pack_paths_reads_entry_points(tmp_path):
     class _EP:
-        def load(self_inner):
+        def load(self):
             return str(tmp_path)
 
     paths = discover_pack_paths(entry_points_fn=lambda: [_EP()])
