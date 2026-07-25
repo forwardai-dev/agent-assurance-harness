@@ -1,58 +1,13 @@
 name: ci
 on: [push, pull_request]
-
 permissions:
   contents: read
-
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with: { python-version: "${{ matrix.python-version }}" }
-      - run: pip install -e ".[dev]"
-      - run: PYTHONPATH=src python -m pytest tests/ -q     # offline, no secrets, provider=mock
-
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
-        with: { python-version: "3.12" }
-      - run: pip install -e ".[dev]" bandit interrogate pip-audit build twine "validate-pyproject[all]" "semgrep==1.171.0" "pyright==1.1.411" "pylint==4.0.6"
-      - name: Lint (ruff)
-        run: ruff check src tests scripts examples && ruff format --check src tests scripts examples
-      - name: Lint (pylint, gate >= 9.0)
-        run: pylint src/aah --fail-under=9.0
-      - name: Types (mypy)
-        run: mypy src
-      - name: Types (pyright — catches overrides/redeclarations mypy allows)
-        run: pyright src examples tests
-      - name: SAST (bandit)
-        run: bandit -r src -c pyproject.toml
-      - name: SAST (semgrep)
-        run: semgrep --config=auto --error --quiet src tests examples
-      - name: Secrets (gitleaks)
-        run: |
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | tar -xz gitleaks
-          ./gitleaks detect --source . --config .gitleaks.toml --redact
-      - name: Coverage gate (>= 90%)
-        run: PYTHONPATH=src python -m pytest tests -q --cov=aah --cov-fail-under=90
-      - name: Docstring coverage (interrogate >= 80%)
-        run: interrogate -c pyproject.toml src
-      - name: Dependency vulns (osv-scanner)
-        run: |
-          curl -sSL https://github.com/google/osv-scanner/releases/download/v1.9.1/osv-scanner_linux_amd64 -o osv-scanner && chmod +x osv-scanner
-          ./osv-scanner scan --recursive .
-      - name: Dependency audit (pip-audit)
-        run: pip-audit || true   # advisory: overlaps osv-scanner above; core dep set is minimal
-      - name: Docs-vs-repo sync (counts, ASI coverage, trust phrasing don't drift)
-        run: PYTHONPATH=src python scripts/check_docs_sync.py
-      - name: Packaging metadata
-        run: validate-pyproject pyproject.toml
-      - name: Build + twine check
-        run: python -m build && twine check dist/*
+  ci:
+    uses: forwardai-dev/ci-workflows/.github/workflows/full.yml@v1
+    with:
+      package-name: "aah"
+      src-paths: "src"
+      lint-paths: "src tests scripts examples"
+      coverage-min: 90
+      run-docs-sync: true
