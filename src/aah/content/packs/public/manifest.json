@@ -16,9 +16,9 @@
     {
       "id": "mitre-atlas",
       "name": "MITRE ATLAS (adversarial technique IDs)",
-      "version": "2026.05",
+      "version": "2026.08",
       "url": "https://atlas.mitre.org/",
-      "retrieved": "2026-07-20",
+      "retrieved": "2026-09-07",
       "live": true
     },
     {
@@ -32,9 +32,9 @@
     {
       "id": "anthropic-research",
       "name": "Anthropic Research (safety/red-team catalog)",
-      "version": "2026-07-20",
+      "version": "11:6771c6e6",
       "url": "https://www.anthropic.com/research",
-      "retrieved": "2026-07-20",
+      "retrieved": "2026-09-07",
       "live": true
     }
   ],
